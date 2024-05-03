@@ -336,8 +336,8 @@ class trajMaker():
             try:
                 XFin = int(self.frame.grid_slaves(row=l,column=1)[0].get())
                 YFin = int(self.frame.grid_slaves(row=l,column=2)[0].get())
-                S = int(self.frame.grid_slaves(row=l,column=c-2)[0].get())
-                P = "selected" in self.frame.grid_slaves(row=l,column=c-1)[0].state()
+                S = int(self.frame.grid_slaves(row=l,column=8)[0].get()) # speed
+                P = "selected" in self.frame.grid_slaves(row=l,column=9)[0].state() # plasma
             except:
                 messagebox.showinfo("Information","Syntax error on one or more field(s)")
                 ok = False
@@ -472,30 +472,106 @@ class trajMaker():
     # FIN def comboboxSelect(self,event,r):
     # ################################################################################
 
-    def insertBelow(self,k):
+    def insertLineBelow(self,line,tl):
         """
         insert an empty line after line k, 0<=k<r
         """
         c,r = self.frame.grid_size()
-        if k<0 or k>=r:
+        if line<0 or line>=r:
+            tl.destroy()
             return
-        for row in range(r,k,-1):
-            for col in range(c):
-                print(f"row-1={row-1} col={col}")
-                w = self.frame.grid_slaves(row=row-1,column=col)[0]
-                print("w lu")
-                w.grid(row=row,column=col)
-
-        # FIN def insertBelow(self,k):
+        print(f"duplique decale vers le bas les lignes {line} .. derniere ")
+        c,r = self.frame.size()
+        self.addLine()
+        if line==r-1:
+            tl.destroy()
+            return           
+        # duplication des combobox de choix de type column=0
+        for irow in range(r-1,line,-1):
+            print(f"irow={irow}")
+            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
+            print(f"type={type}")
+            self.frame.grid_slaves(row=irow+1,column=0)[0].set(type)
+        self.frame.grid_slaves(row=line+1,column=0)[0].set("")
+        # duplications des parametres de col 1 a col 9
+        for icol in range(1,9):
+            for irow in range(r-1,line,-1):
+                if 'disabled' in self.frame.grid_slaves(row=irow,column=icol)[0].state():
+                    self.frame.grid_slaves(row=irow+1,column=icol)[0].delete(0,tk.END)
+                    self.frame.grid_slaves(row=irow+1,column=icol)[0].config(state="disabled")
+                    continue
+                self.frame.grid_slaves(row=irow+1,column=icol)[0].config(state="enabled")
+                val = self.frame.grid_slaves(row=irow,column=icol)[0].get()
+                val2 = self.frame.grid_slaves(row=irow+1,column=icol)[0].get()
+                print(f"moving row {irow} with {val} to {irow+1} with {val2}")
+                self.frame.grid_slaves(row=irow+1,column=icol)[0].delete(0,tk.END)
+                self.frame.grid_slaves(row=irow+1,column=icol)[0].insert(0,val)
+            self.frame.grid_slaves(row=line+1,column=icol)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=line+1,column=icol)[0].insert(0,"")
+        tl.destroy()
+        return
+        # FIN def insertLineBelow(self,line,tl):
     # ################################################################################
+
+    def insertLineAbove(self,line,tl):
+        """
+        insert an empty line after line k, 0<=k<r
+        """
+        c,r = self.frame.grid_size()
+        if line<0 or line>=r:
+            tl.destroy()
+            return
+        print("duplique decale vers le bas les lignes {line} .. derniere ")
+        c,r = self.frame.size()
+        self.addLine()
+        # duplication des combobox de choix de type column=0
+        for irow in range(r-1,line-1,-1):
+            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
+            self.frame.grid_slaves(row=irow+1,column=0)[0].set(type)
+        self.frame.grid_slaves(row=line,column=0)[0].set("")
+        # duplications des parametres de col 1 a col 9
+        for icol in range(1,9):
+            for irow in range(r-1,line-1,-1):
+                if 'disabled' in self.frame.grid_slaves(row=irow,column=icol)[0].state():
+                    self.frame.grid_slaves(row=irow+1,column=icol)[0].delete(0,tk.END)
+                    self.frame.grid_slaves(row=irow+1,column=icol)[0].config(state="disabled")
+                    continue
+                self.frame.grid_slaves(row=irow+1,column=icol)[0].config(state="enabled")
+                val = self.frame.grid_slaves(row=irow,column=icol)[0].get()
+                val2 = self.frame.grid_slaves(row=irow+1,column=icol)[0].get()
+                print(f"moving row {irow} with {val} to {irow+1} with {val2}")
+                self.frame.grid_slaves(row=irow+1,column=icol)[0].delete(0,tk.END)
+                self.frame.grid_slaves(row=irow+1,column=icol)[0].insert(0,val)
+            self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=line,column=icol)[0].insert(0,"")
+        tl.destroy()
+        return
+        # FIN def insertLineAbove(self,line,tl):
+    # ################################################################################
+    
     def removeLine(self,line,tl):
         print(f"entering removeLine with {line} {tl}")
+        for icol in range(11):
+            self.frame.grid_slaves(row=line,column=icol)[0].grid_remove()
         tl.destroy()
+    # FIN def removeLine(self,line,tl)
+    # ################################################################################
+    
+    def copyLine(self,line,tl):
+        messagebox.showinfo("","copyLine not yet implemented")
+        tl.destroy()
+    # FIN def cpoyLine(self,line,tl)
+    # ################################################################################
         
-        
+    def pasteLine(self,line,tl):
+        messagebox.showinfo("","pasteLine not yet implemented")
+        tl.destroy()
+    # FIN def cpoyLine(self,line,tl)
+    # ################################################################################
+
     def addLine(self,line=""):
         def editLine(event,line):
-            # print("entering editLine ",line)
+            print("entering editLine ",line)
             tl = tk.Toplevel()
             tl.title("Edit")
             # while this toplevel is living NO other action is possible :
@@ -503,17 +579,22 @@ class trajMaker():
             tl.wait_visibility()
             tl.grab_set()
             lab = tk.Label(tl,text="Line %d"%(line+1),width=17)
-            butInsBel = tk.Button(tl,text="Insert line below",width=17)
+            butInsBel = tk.Button(tl,text="Insert line below",width=17,command=lambda :self.insertLineBelow(line,tl))
+            butInsAbo = tk.Button(tl,text="Insert line above",width=17,command=lambda :self.insertLineAbove(line,tl))
             butDel = tk.Button(tl,text="Delete line",width=17,command=lambda :self.removeLine(line,tl))
-            butCop = tk.Button(tl,text="Copy line",width=17)
-            butPas = tk.Button(tl,text="Paste line",width=17)
+            butCop = tk.Button(tl,text="Copy line",width=17,command=lambda :self.copyLine(line,tl))
+            butPas = tk.Button(tl,text="Paste line",width=17,command=lambda :self.pasteLine(line,tl))
+            butCancel = tk.Button(tl,text="Cancel",width=17,command= lambda: tl.destroy())
             lab.grid(column=0,row=0)
-            butInsBel.grid(column=0,row=1)
-            butDel.grid(column=0,row=2)
-            butCop.grid(column=0,row=3)
-            butPas.grid(column=0,row=4)
+            butInsAbo.grid(column=0,row=1)
+            butInsBel.grid(column=0,row=2)
+            butDel.grid(column=0,row=3)
+            butCop.grid(column=0,row=4)
+            butPas.grid(column=0,row=5)
+            butCancel.grid(column=0,row=6)
         # FIN def editLine(event):
         # #############################################################
+        
         c,r = self.frame.grid_size()
         w = ttk.Combobox(self.frame,values=self.types,width=self.widthCell,state="readonly")
         w.bind("<<ComboboxSelected>>", lambda  event : self.comboboxSelect(event,r))
