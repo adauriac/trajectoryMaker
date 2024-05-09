@@ -84,11 +84,27 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     return "ok",xc-R,yc-R,xc+R,yc+R,-ad,extent
 # FIN def create_arcParameter(xd,yd,xf,yf,xp,yp)
 
+class jcCheckbutton(ttk.Checkbutton):
+    """
+    a tk.Checkbutton which can be set or unset with .set(True) or .set(False)
+    and read with .get() (return the state)
+    """
+    def __init__(self, parent,  **kwargs):
+        variable = tk.BooleanVar()
+        self.v = variable
+        super().__init__(parent,  variable=variable, **kwargs)
+    
+    def get(self):
+        return self.v.get()
+    
+    def set(self,v):
+        self.v.set(v)
+ # FIN class jcCheckbutton(ttk.Checkbutton)
+# ##############################################################################
+
 ######################################################################################
 #                                CLASS MATRIX                                        #
 ######################################################################################
-def rien():
-    pass
 class trajMaker():
     """
     The "trajMaker" allowing to draw a trajectory.
@@ -100,9 +116,9 @@ class trajMaker():
     3) my=trajMaker(tk.Toplevel())
     It can be instancied with a Toplevel, or without (root is then used)
 
-    11 columns:
-        0      1    ...   8        9     10
-    combobbox entry ... entry  checkbox label
+    12 columns:
+        0      1    ...   8        9     10     11
+    combobbox entry ... entry  checkbox label selected
     """
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
     implementedTypes = ["line","ezsqx","ezsqy","arc1","arc2"]
@@ -114,16 +130,23 @@ class trajMaker():
             # prevent close window:
             # parent.protocol("WM_DELETE_WINDOW", lambda:None)
             self.parent = parent
+        parent.geometry("800x200")
         self.frameB = tk.Frame(parent)
         self.frame = tk.Frame(parent)
         self.frameB.pack()
         self.frame.pack()
-        bdel = tk.Button(self.frameB,text="Delete last line",command=self.delLastLine)
+        bdel = tk.Button(self.frameB,text="Delete selected lines",command=self.delSelectLines)
         badd = tk.Button(self.frameB,text="Add a line",command=self.addLine)
-        bOK = tk.Button(self.frameB,text="Ok",command=self.go)
-        bdel.pack(side='left')
-        badd.pack(side='left')
-        bOK.pack(side='left')
+        bSAll = tk.Button(self.frameB,text="Select all",command=self.selectAll)
+        bSNone = tk.Button(self.frameB,text="Select none",command=self.deselectAll)
+        bSave = tk.Button(self.frameB,text="Save/show",command=self.go)
+        bLoad = tk.Button(self.frameB,text="Load",command=self.loadFile)
+        bdel.grid(row=0,column=0)
+        badd.grid(row=0,column=1)
+        bSAll.grid(row=0,column=2)
+        bSNone.grid(row=0,column=3)
+        bSave.grid(row=1,column=1)
+        bLoad.grid(row=1,column=2)
         self.topDraw = 0
         if True:
             self.addLine("line 100 100 1 5 1")
@@ -151,8 +174,10 @@ class trajMaker():
             self.topDraw.destroy()
         self.topDraw = tk.Toplevel(width=410,height=510)
         self.topDraw.title("TRAJECTORY")
+        btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
+        btn.place(x=self.topDraw.winfo_width()/2,y=20)
         self.canvas = tk.Canvas(self.topDraw,width=400,height=500,bg='ivory')
-        self.canvas.place(x=5,y=5)
+        self.canvas.place(x=5,y=55)
 
         e = 2
         xcur = 0
@@ -281,7 +306,6 @@ class trajMaker():
         self.trajDescript = []
         # checking syntax
         for l in range(r):
-            # print("dans go ",l) # bidon
             w = self.frame.grid_slaves(row=l,column=0)[0]
             type = w.get()
             if type =="":
@@ -336,31 +360,59 @@ class trajMaker():
             else:
                 messagebox.showinfo("Information","unexpected type")
         self.proccessTraj()
-        # FIN def go(self):
+    # FIN def go(self):
     # ################################################################################
             
-    def delLastLine(self):
+    def delSelectLines(self):
         c,r = self.frame.grid_size()
-        if r==1:
-            return
-        # delete line r-1
-        for k in range(c):
-            w = self.frame.grid_slaves(row=r-1, column=k)[0]
-            w.grid_remove()
-    # FIN def delLastLine(self):
+        print(f"entering delSelectLines,c,r={c,r}")
+        while True:
+            somethingDone = False
+            c,r = self.frame.grid_size()
+            for i in range(r):
+                doIt = self.frame.grid_slaves(row=i,column=11)[0].get()
+                if not doIt: # selectelines
+                    continue
+                self.delLine(i)
+                somethingDone = True
+                break
+            if not somethingDone:
+                break
+    # FIN def delSelectLines(self):
     # ################################################################################
 
     def delLine(self,line):
+        """
+        delete the line of the gris therefore the number of line is decremented by one
+        """
         c,r = self.frame.grid_size()
-        if r==1:
+        # print(f"entering delLine c,r,line={c,r,line}")
+        if line<0 or line>= r :
             return
-        if line<0 or line >= r :
-            pass
-        # delete line r-1
-        for k in range(c):
-            w = self.frame.grid_slaves(row=line, column=k)[0]
-            w.grid_remove()
-    # FIN def delLastLine(self):
+        # delete line
+        for icol in range(c):
+            self.frame.grid_slaves(row=line,column=icol)[0].destroy()
+        for irow in range(line+1,r):
+            for icol in range(c):
+                w =  self.frame.grid_slaves(row=irow,column=icol)[0]
+                w.grid(row=irow-1,column=icol)
+        self.renumber()
+        # print(f"leaving delLine c,r={self.frame.grid_size()}")
+    # FIN def delLine (self,line)
+    # ################################################################################
+            
+    def deselectAll(self):
+        c,r = self.frame.grid_size()
+        for i in range(r):
+            self.frame.grid_slaves(row=i,column=11)[0].set(False) # selected lines
+    # FIN def deselectAll(self):
+    # ################################################################################
+
+    def selectAll(self):
+        c,r = self.frame.grid_size()
+        for i in range(r):
+            self.frame.grid_slaves(row=i,column=11)[0].set(True)
+    # FIN def selectAll(self):
     # ################################################################################
 
     def comboboxSelect(self,event,r):
@@ -479,13 +531,14 @@ class trajMaker():
             self.frame.grid_slaves(row=line+1,column=icol)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=line+1,column=icol)[0].insert(0,"")
         tl.destroy()
+        self.renumber()
         return
         # FIN def insertLineBelow(self,line,tl):
     # ################################################################################
 
     def insertLineAbove(self,line,tl):
         """
-        insert an empty line after line k, 0<=k<r
+        insert an empty line after line, 0<=k<r moving 
         """
         c,r = self.frame.grid_size()
         if line<0 or line>=r:
@@ -515,6 +568,7 @@ class trajMaker():
             self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=line,column=icol)[0].insert(0,"")
         tl.destroy()
+        self.renumber()
         return
         # FIN def insertLineAbove(self,line,tl):
     # ################################################################################
@@ -524,26 +578,33 @@ class trajMaker():
         for icol in range(11):
             self.frame.grid_slaves(row=line,column=icol)[0].grid_remove()
         tl.destroy()
+        self.renumber()
     # FIN def removeLine(self,line,tl)
     # ################################################################################
     
     def copyLine(self,line,tl):
         messagebox.showinfo("","copyLine not yet implemented")
         tl.destroy()
+        self.renumber()
     # FIN def cpoyLine(self,line,tl)
     # ################################################################################
         
     def pasteLine(self,line,tl):
         messagebox.showinfo("","pasteLine not yet implemented")
         tl.destroy()
-    # FIN def cpoyLine(self,line,tl)
+        self.renumber()
+    # FIN def copyLine(self,line,tl)
     # ################################################################################
 
     def addLine(self,line=""):
+        def close(event = ""):
+            print(f"je ferme {event}")
         def editLine(event,line):
             print("entering editLine ",line)
             tl = tk.Toplevel()
             tl.title("Edit")
+            tl.protocol("WM_DELETE_WINDOW",close )
+            tl.bind("<Destroy>", close)
             # while this toplevel is living NO other action is possible :
             tl.focus_force()
             tl.wait_visibility()
@@ -573,18 +634,21 @@ class trajMaker():
             w = ttk.Entry(self.frame,width=self.widthCell)
             w.config(state="disabled")
             w.grid(row=r,column=k) # position finale du premier section
-        w = ttk.Checkbutton(self.frame,text="Plasma",width=self.widthCell)
-        w.config(state="selected")
+        w = jcCheckbutton(self.frame,text="Plasma",width=self.widthCell)
+        w.set(False);
         w.grid(row=r,column=9) # plasma
         w = tk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=2,relief="solid",bg="white")
-        w.grid(row=r,column=10)
+        w.grid(row=r,column=10) # label
         w.bind('<Button-1>', lambda event : editLine(event,r))
         w.bind("<Enter>", lambda event : event.widget.config(bg="red"))
         w.bind("<Leave>", lambda event : event.widget.config(bg="white"))
+        w = jcCheckbutton(self.frame,width=self.widthCell)
+        w.set(True);
+        w.grid(row=r,column=11) # selecteur        
         if line=="":
             return
 
-        # here we add the line line
+        # here we add the line line given as arguments
         ls = line.split()
         type = ls[0]
         if type not in self.implementedTypes:
@@ -641,20 +705,45 @@ class trajMaker():
     # FIN def addLine(self,line=""):
     # ################################################################################        
 
+    def xchangeWidgets(self,column0=0,row0=0,column1=1,row1=1):
+        """
+        exchange the two widgets in position (row0,column0) and (row1,column1)
+        """
+        c,r = self.frame.grid_size()
+        if row0<0 or row0>=r or row1<0 or row1>=r:
+            return
+        w0 = self.frame.grid_slaves(row=row0,column=column0)[0]
+        w1 = self.frame.grid_slaves(row=row1,column=column1)[0]
+        w0.grid_remove()
+        w1.grid_remove()
+        w0.grid(row=row1,column=column1)
+        w1.grid(row=row0,column=column0)
 
-
-
-def creop(fr,k):
-    c,r = fr.grid_size()
-    for ic in range(c):
-        w = fr.grid_slaves(row=k,column=ic)[0]
-        w.grid(row=k+1,column=ic)
-
-
-
-
-
+    def renumber(self):
+        c,r = self.frame.grid_size()
+        for i in range(r):
+            self.frame.grid_slaves(row=i,column=10)[0]["text"] = "%d"%(i+1)
+    # FIN def renumber(self):
+    # ################################################################################
     
+    def loadFile(self):
+        """
+        copy line l0 into line l1 which is therefore lost
+        """
+        c,r = self.frame.grid_size()
+        print(f"entering loadFile c,r={c,r}")
+    # FIN def loadFile(self)
+    # ################################################################################        
+    
+    def saveToFile(self):
+        """
+        copy line l0 into line l1 which is therefore lost
+        """
+        c,r = self.frame.grid_size()
+        print(f"entering saveToFile c,r={c,r}")
+    # FIN def loadFile(self)
+    # ################################################################################        
+
 if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
@@ -664,3 +753,5 @@ if __name__=='__main__':
     my=trajMaker(root)
     fr = my.frame
     # root.mainloop()
+
+
