@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 from math import atan2,sin,cos,pi,sqrt
 
 """
@@ -123,6 +124,15 @@ class trajMaker():
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
     implementedTypes = ["line","ezsqx","ezsqy","arc1","arc2"]
     widthCell = 6
+    Dico={"line":{"xF":1,"yF":2,"zF":3,"speed":8,"plasma":9},        # point final
+          "ezsqx":{"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
+          "ezsqy":{"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
+          "arc1":{"xF":1,"yF":2,"xP":4,"yP":5,"speed":8,"plasma":9}, # point final point de passage (3 pts ==> OK)
+          "arc2":{"xF":1,"yF":2,"xC":4,"yC":5,"sens":6,"speed":8,"plasma":9}, # point final centre sens PAS FOPRCEMENT CONSISTENT
+          "circ1":{"xP1":1,"yP1":2,"xP2":4,"yP2":5,"speed":8,"plasma":9}, # point de passage 1  point de passage 2 (3 pts OK)
+          "circ2":{"xC":1,"yC":2,"sens":4}                                # centre et sens 
+          }
+
     def __init__(self,parent=None, **kwargs):
         if parent==None:
             parent = tk.Toplevel()
@@ -186,25 +196,31 @@ class trajMaker():
             # param common to all type of section
             x0 = xcur # debut de la section
             y0 = ycur # debut de la section
-            ts = section.split()
-            type = ts[0]
-            xf = float(ts[1])
-            yf = float(ts[2])
-            speed = float(ts[-2])
-            plasma = ts[-1]
-            color = 'red' if plasma=="True" else 'green'
+            print(section)
+            localDico =dict()
+            for ss in section.split():
+                k,v=ss.split("=")
+                localDico[k]=v
+            type = localDico["type"]
+            speed = localDico["speed"]
+            plasma = localDico["plasma"]
+            color = 'red' if plasma=="1" else 'green'
             w = int(speed)//10+1
-            print(f"dans proccessTraj section={section}, plasma={plasma}, color={color} w={w}")
             if type=='line':
-                self.canvas.create_line(xcur+e,ycur+e,xf+e,yf+e, fill=color, width=2)
-                xcur = xf
-                ycur = yf
+                xF = float(localDico["xF"])
+                yF = float(localDico["yF"])
+                zF = float(localDico["zF"])
+                self.canvas.create_line(xcur+e,ycur+e,xF+e,yF+e, fill=color, width=2)
+                xcur = xF
+                ycur = yF
             elif type=="ezsqx":
                 # first: a straight line         _
                 # second: n              times _| |
-                n = int(ts[4])
-                LX = xf-xcur
-                LY = yf-ycur
+                xF = float(localDico["xF"])
+                yF = float(localDico["yF"])
+                n = int(localDico["nZigZag"])
+                LX = xF-xcur
+                LY = yF-ycur
                 L = LY
                 l = LX/(2.0*n) if n!=0 else L
                 self.canvas.create_line(xcur+e,ycur+e,xcur+e,ycur+L+e, fill=color, width=w)
@@ -229,9 +245,11 @@ class trajMaker():
             elif type=="ezsqy":
                 # first: a straight line         _
                 # second: n          
-                n = int(ts[4])
-                LX = xf-xcur
-                LY = yf-ycur
+                xF = float(localDico["xF"])
+                yF = float(localDico["yF"])
+                n = int(localDico["nZigZag"])
+                LX = xF-xcur
+                LY = yF-ycur
                 L = LX
                 l = LY/(2.0*n) if n!=0 else L
                 self.canvas.create_line(xcur+L+e,ycur+e,xcur+e,ycur+e, fill=color, width=w)
@@ -254,32 +272,35 @@ class trajMaker():
                     self.canvas.create_line(xcur+e,ycur+e,xcur+L+e,ycur+e, fill=color, width=w)
                     xcur += L
             elif type=="arc1": # pt final et pt passage
+                xF = float(localDico["xF"])
+                yF = float(localDico["yF"])
                 xd = xcur # debut de la trajectoire
                 yd = ycur # debut de la trajectoire
-                xp = float(ts[4]) # point de passage
-                yp = float(ts[5]) # point de passage
-                status,a,b,c,d,start,extent = create_arcParameter(xd,yd,xf,yf,xp,yp)
+                xp = float(localDico["xP"]) # point de passage
+                yp = float(localDico["yP"]) # point de passage
+                status,a,b,c,d,start,extent = create_arcParameter(xd,yd,xF,yF,xp,yp)
                 self.canvas.create_arc(a,b,c,d,start=start,extent=extent,style=tk.ARC,outline=color,width=w)
                 if status!='ok':
                     messagebox.showinfo("information",status)
-                xcur = xf
-                ycur = yf
+                xcur = xF
+                ycur = yF
             elif type=="arc2": # pt final, centre et sens
-                print(f"{ts}")
                 xd = xcur # debut de la trajectoire
                 yd = ycur # debut de la trajectoire
-                xc = float(ts[4]) # x center
-                yc = float(ts[5]) # y center
-                sens = int(ts[7])
+                xF = float(localDico["xF"])
+                yF = float(localDico["yF"])
+                xc = float(localDico["xC"]) # x center
+                yc = float(localDico["yC"]) # y center
+                sens = int(localDico["sens"]) # sens
                 # print(f"xc,yc,sens={xc,yc,sens}") # bidon
                 R2 = (xd-xc)**2 + (yd-yc)**2 # rayon calule avec point courant
-                R2a = (xf-xc)**2 + (yf-yc)**2 # rayon calule avec point cible
+                R2a = (xF-xc)**2 + (yF-yc)**2 # rayon calule avec point cible
                 if abs(R2-R2a)>0.1: # les rayons sont de l'ordre de 10 a 100 
                     messagebox.showerror("Error",f"Inconsistent data for arc2 {R2,R2a}")
                     return
                 R = sqrt(R2)
                 AdR = atan2(yd-yc,xd-xc) # angle polaire debut
-                AfR = atan2(yf-yc,xf-xc) # angle polaire fin
+                AfR = atan2(yF-yc,xF-xc) # angle polaire fin
                 if AdR<0:AdR += 2*pi
                 if AfR<0:AfR += 2*pi
                 ad = AdR*180/pi
@@ -288,12 +309,12 @@ class trajMaker():
                 # print(f"self.canvas.create_arc({xc-R,yc-R,xc+R,yc+R},start={-ad},extent={extent},style={tk.ARC})") bidon
                 self.canvas.create_arc(xc-R,yc-R,xc+R,yc+R,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
                 # if status!='ok':                    messagebox.showinfo("information",status)
-                xcur = xf
-                ycur = yf
+                xcur = xF
+                ycur = yF
             else:
                 messagebox.showinfo("information",f"processTraj: {type} not yet implemented")
-            if (xcur-xf)**2 + (ycur-yf)**2 >1e-5:
-                messagebox.showinfo("Erreur Grave",f"Pt final {xcur,ycur} loin de celui demande={xf,yf}")
+            if (xcur-xF)**2 + (ycur-yF)**2 >1e-5:
+                messagebox.showinfo("Erreur Grave",f"type={type} Pt final {xcur,ycur} loin de celui demande={xF,yF}")
         # fin du traitement de la section
     # FIN def proccessTraj(self):
     # ################################################################################
@@ -306,6 +327,8 @@ class trajMaker():
         self.trajDescript = []
         # checking syntax
         for l in range(r):
+            if not self.frame.grid_slaves(row=l,column=c-1)[0].get():
+                continue
             w = self.frame.grid_slaves(row=l,column=0)[0]
             type = w.get()
             if type =="":
@@ -314,51 +337,16 @@ class trajMaker():
                 messagebox.showinfo("information","one of the types is not implemented")
                 return  # since the type is not yet implemented (TODO)
             # here a type implemented
-            ok = True
-            try:
-                XFin = float(self.frame.grid_slaves(row=l,column=1)[0].get())
-                YFin = float(self.frame.grid_slaves(row=l,column=2)[0].get())
-                S = float(self.frame.grid_slaves(row=l,column=8)[0].get()) # speed
-                P = "selected" in self.frame.grid_slaves(row=l,column=9)[0].state() # plasma
-            except:
-                messagebox.showinfo("Information",f"Syntax error on at least one field on line {l+1} (common parameters)")
-                ok = False
-            if not ok:
-                return
-            # here a type implemented and syntax ok            
-            ZFin = 0
-            if type == "line":
-                # no extra parameter
-                section = f"{type} {XFin} {YFin} {ZFin} {S} {P}"
-                self.trajDescript.append(section)
-            elif type=="ezsqx" or type=="ezsqy":
-                # extraparameter = number of zigzag
-                ok=True
-                try:
-                    N = int(self.frame.grid_slaves(row=l,column=4)[0].get())
-                except:
-                    ok=False
-                if not ok:
-                    messagebox.showinfo("Information",f"Syntax error on at least one field on line {l+1} (ezsqx/y parameter)")
-                    return
-                section = f"{type} {XFin} {YFin} {ZFin} {N} {S} {P}"
-                self.trajDescript.append(section)
-            elif type=="arc1":
-                XP = float(self.frame.grid_slaves(row=l,column=4)[0].get()) # X passage
-                YP = float(self.frame.grid_slaves(row=l,column=5)[0].get()) # Y passage
-                ZP = 0
-                section=f"{type} {XFin} {YFin} {ZFin} {XP} {YP} {ZP} {S} {P}"
-                self.trajDescript.append(section)
-            elif type=="arc2":
-                XC = float(self.frame.grid_slaves(row=l,column=4)[0].get()) # X center
-                YC = float(self.frame.grid_slaves(row=l,column=5)[0].get()) # Y center
-                ZC = 0
-                sens = int(self.frame.grid_slaves(row=l,column=6)[0].get()) # sens
-                section=f"{type} {XFin} {YFin} {ZFin} {XC} {YC} {ZC} {sens} {S} {P}"
-                # print(f"dans go et arc2 on append {section}") # bidon
-                self.trajDescript.append(section)
-            else:
-                messagebox.showinfo("Information","unexpected type")
+            dico = self.Dico[type]
+            params=dico.keys()
+            parameters= "type="+type+" "
+            for key in dico.keys():
+                k = dico[key]
+                val = self.frame.grid_slaves(row=l,column=k)[0].get()
+                if val==True:val="1"
+                if val==False: val="0"
+                parameters += key+"="+val+" "
+            self.trajDescript.append(parameters)
         self.proccessTraj()
     # FIN def go(self):
     # ################################################################################
@@ -453,42 +441,55 @@ class trajMaker():
             self.frame.grid_slaves(row=r,column=4)[0].config(state="normal")
             self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=r,column=4)[0].insert(0,"Nzigzag")
-        elif newType=="arc1" or newType=="arc2":
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal")
+        elif newType=="arc1" :
+            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xFin
             self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=r,column=1)[0].insert(0,"Xend")
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal")
+            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yFin
             self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=r,column=2)[0].insert(0,"Yend")
-            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal")
+            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal") # xPassage
             self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
-            msg = "Xpass" if newType=="arc1" else "Xcenter"
-            self.frame.grid_slaves(row=r,column=4)[0].insert(0,msg)
-            msg = "Ypass" if newType=="arc1" else "Ycenter"
-            self.frame.grid_slaves(row=r,column=5)[0].config(state="normal")
+            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"xPass")
+            self.frame.grid_slaves(row=r,column=5)[0].config(state="normal") # yPassage
             self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=5)[0].insert(0,msg)
-            if newType=='arc2':
-                self.frame.grid_slaves(row=r,column=6)[0].config(state="normal")
-                self.frame.grid_slaves(row=r,column=6)[0].delete(0,tk.END)
-                self.frame.grid_slaves(row=r,column=6)[0].insert(0,"Sens")
-        elif newType=="circ1" or newType=="circ2":
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal")
+            self.frame.grid_slaves(row=r,column=5)[0].insert(0,"yPass")
+        elif newType=="arc2":
+            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xFin
             self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
-            msg = "Xpass1" if newType=="circ1" else "Xcenter"
-            self.frame.grid_slaves(row=r,column=1)[0].insert(0,msg)
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal")
+            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"Xend")
+            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yFin
             self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
-            msg = "Ypass1" if newType=="circ1" else "Ycenter"
-            self.frame.grid_slaves(row=r,column=2)[0].insert(0,msg)
-            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal")
+            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"Yend")
+            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal") # xCenter
             self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
-            msg = "Xpass2" if newType=="circ1" else "Sens"
-            self.frame.grid_slaves(row=r,column=4)[0].insert(0,msg)
-            if  newType=="circ1":
-                self.frame.grid_slaves(row=r,column=5)[0].config(state="normal")
-                self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
-                self.frame.grid_slaves(row=r,column=5)[0].insert(0,"Ypass2")
+            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"xCenter")
+            self.frame.grid_slaves(row=r,column=5)[0].config(state="normal") # yCenter
+            self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=5)[0].insert(0,"yCenter")
+            self.frame.grid_slaves(row=r,column=6)[0].config(state="normal") # sens
+            self.frame.grid_slaves(row=r,column=6)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=6)[0].insert(0,"Sens")
+        elif newType=="circ1":
+            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xPassage1
+            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"xPas1")
+            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yPassage1
+            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"yPas1")
+            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal") # xPassage2
+            self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"xPas2")
+            self.frame.grid_slaves(row=r,column=5)[0].config(state="normal") # yPassage2
+            self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"yPas2")
+        elif newType=="circ2":
+            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xCenter
+            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"xCenter")
+            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yCenter
+            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"yCenter")
         else:
             messagebox.showinfo("Show info","Not yet implemented")
     # FIN def comboboxSelect(self,event,r):
@@ -598,7 +599,8 @@ class trajMaker():
 
     def addLine(self,line=""):
         def close(event = ""):
-            print(f"je ferme {event}")
+            # print(f"je ferme {event}")
+            return
         def editLine(event,line):
             print("entering editLine ",line)
             tl = tk.Toplevel()
@@ -732,18 +734,95 @@ class trajMaker():
         """
         c,r = self.frame.grid_size()
         print(f"entering loadFile c,r={c,r}")
+        fileName = filedialog.askopenfilename()
+        try :
+            lines = open(fileName).readlines()
+            ok = True
+        except:
+            message.error("Could not open the file {fileName} for reading")
+            ok = False
+        if not ok:
+            return
+        # update the gui
+        self.selectAll()
+        self.delSelectLines()
+        for line in lines:
+            print(line)
+            self.addLine(line)
+            
     # FIN def loadFile(self)
     # ################################################################################        
     
     def saveToFile(self):
         """
-        copy line l0 into line l1 which is therefore lost
+        Save with the format imposed by plasmagui
         """
+        enTete = """Numero d'article;XYZ;;;;;;;;;;;;
+Numero de serie;789;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+Puissance Plasma (W);1000;;;;;;;;;;;;
+Debit Plasma (l/mn);40;;;;;;;;;;;;
+;;;;;;;;;;;;;
+Description trajectoire;;L;EZSQX;EZSQY;A1;A2;C1;C2;W;START;END;;
+Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 1;0 ou 1;0 ou 1
+"""
         c,r = self.frame.grid_size()
         print(f"entering saveToFile c,r={c,r}")
+        fileName = filedialog.asksaveasfilename()
+        if fileName=='':
+            return # since "cancel" has been used
+        try:
+            f = open(fileName,"w")
+            ok = True
+        except:
+            message.error("Could not open the file {fileName} for writing")
+            ok = False
+        if not ok:
+            return
+        # f.writelines(enTete)
+        for irow in range(r):
+            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
+            xF = self.frame.grid_slaves(row=irow,column=1)[0].get()+" "
+            yF = self.frame.grid_slaves(row=irow,column=2)[0].get()+" "
+            speed = self.frame.grid_slaves(row=irow,column=8)[0].get()+" "
+            plasma = self.frame.grid_slaves(row=1,column=9)[0].get()
+            plasma = str(int(plasma))
+            if type == 'line':
+                zF = self.frame.grid_slaves(row=irow,column=3)[0].get() + " "
+                line = type + " " + xF + yF + zF + speed + plasma
+            elif type == 'ezsqx' or type == 'ezsqy':
+                nZigZag = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
+                line = type + " " + xF + yF + nZigZag + speed + plasma
+            elif type == 'arc1':
+                xP = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
+                yP = self.frame.grid_slaves(row=irow,column=5)[0].get() + " "
+                line = type + " " + xP + yP + speed + plasma
+            elif type == 'circ1':
+                xP1 = self.frame.grid_slaves(row=irow,column=1)[0].get() + " "
+                yP1 = self.frame.grid_slaves(row=irow,column=2)[0].get() + " "
+                xP2 = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
+                yP2 = self.frame.grid_slaves(row=irow,column=5)[0].get() + " "
+                line = type + " " + xP1 + yP1 + xP2 + yP2 +speed + plasma
+            elif type == 'arc2':
+                xC = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
+                yC = self.frame.grid_slaves(row=irow,column=5)[0].get() + " "
+                sens = self.frame.grid_slaves(row=irow,column=6)[0].get() + " "
+                line = type + " " + xF + yF + xC + yC + sens +speed + plasma
+            elif type == 'circ2':
+                xC = self.frame.grid_slaves(row=irow,column=1)[0].get() + " "
+                yC = self.frame.grid_slaves(row=irow,column=2)[0].get() + " "
+                sens = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
+                line = type + " " + xC + yC + sens +speed + plasma
+            print(line)
+            f.writelines(line+'\n')
+        f.close()
     # FIN def loadFile(self)
     # ################################################################################        
 
+    """
+    Mes conventions
+    """
 if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
