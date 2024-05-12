@@ -17,6 +17,26 @@ there always x(1) y(1) z(1) = final point(0,1,2) and speed plasma (-2,-1)
 """
 def filterDir(x,t):
     print(list(filter(lambda x:x.find(t)!=-1,dir(x))))
+    
+def fromPtsToCenterR(x1,y1,x2,y2,x3,y3):
+    """
+    return a string and 3 numbers = 'status',xc,yc,R
+    """
+    den = 2*x1*y2-2*x1*y3-2*y1*x2+2*y1*x3-2*x3*y2+2*y3*x2 # denominator of xC and yC
+    if abs(den)<1e-5:
+        return "small denominator",0,0,0
+    numx = -y1*x2**2+y3*x2**2-y2**2*y1+y2*y1**2+y1*x3**2+y3**2*y1-x1**2*y3+x1**2*y2-y3*y1**2+y2**2*y3-x3**2*y2-y2*y3**2
+    numy = -x1**2*x2+x1**2*x3+x1*x2**2+x1*y2**2-x1*x3**2-x1*y3**2-y1**2*x2+y1**2*x3+x3**2*x2-x3*x2**2-x3*y2**2+y3**2*x2
+    xc = numx/den
+    yc = numy/den
+    R = sqrt((xc-x1)**2+(yc-y1)**2)
+    RR = sqrt((xc-x2)**2+(yc-y2)**2)
+    RRR = sqrt((xc-x3)**2+(yc-y3)**2)
+    if abs(R-RR) + abs(R-RRR) > 1e-4:
+        return "several different R determinations",0,0,0
+    return  "ok",xc,yc,R
+# FIN def fromPtsToCenterR(x1,y1,x2,y2,x3,y3):
+# #####################################################################################
 
 def create_arcParameter(xd,yd,xf,yf,xp,yp):
     """
@@ -24,25 +44,6 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     return the status and the 4 positional parameters and start ans extent parameter as
     ("ok",x1,y1,x2,y2,start,extent) or ("message",0,0,0,0,0,0
     """
-    def fromPtsToCenterR(x1,y1,x2,y2,x3,y3):
-        """
-        return a string and 3 numbers = 'status',xc,yc,R
-        """
-        den = 2*x1*y2-2*x1*y3-2*y1*x2+2*y1*x3-2*x3*y2+2*y3*x2 # denominator of xC and yC
-        if abs(den)<1e-5:
-            return "small denominator",0,0,0
-        numx = -y1*x2**2+y3*x2**2-y2**2*y1+y2*y1**2+y1*x3**2+y3**2*y1-x1**2*y3+x1**2*y2-y3*y1**2+y2**2*y3-x3**2*y2-y2*y3**2
-        numy = -x1**2*x2+x1**2*x3+x1*x2**2+x1*y2**2-x1*x3**2-x1*y3**2-y1**2*x2+y1**2*x3+x3**2*x2-x3*x2**2-x3*y2**2+y3**2*x2
-        xc = numx/den
-        yc = numy/den
-        R = sqrt((xc-x1)**2+(yc-y1)**2)
-        RR = sqrt((xc-x2)**2+(yc-y2)**2)
-        RRR = sqrt((xc-x3)**2+(yc-y3)**2)
-        if abs(R-RR) + abs(R-RRR) > 1e-4:
-            return "several different R determinations",0,0,0
-        return  "ok",xc,yc,R
-    # FIN def fromPtsToCenterR(x1,y1,x2,y2,x3,y3):
-    # #####################################################################################
     stat,xc,yc,R = fromPtsToCenterR(xd,yd,xf,yf,xp,yp)
     # print(f"ds create_arcParameter xc,yc,R={xc,yc,R}") #bidon
     if stat!='ok':
@@ -122,15 +123,15 @@ class trajMaker():
     combobbox entry ... entry  checkbox label selected
     """
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
-    implementedTypes = ["line","ezsqx","ezsqy","arc1","arc2"]
+    implementedTypes = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2"]
     widthCell = 6
-    Dico={"line":{"xF":1,"yF":2,"zF":3,"speed":8,"plasma":9},        # point final
-          "ezsqx":{"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
-          "ezsqy":{"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
-          "arc1":{"xF":1,"yF":2,"xP":4,"yP":5,"speed":8,"plasma":9}, # point final point de passage (3 pts ==> OK)
-          "arc2":{"xF":1,"yF":2,"xC":4,"yC":5,"sens":6,"speed":8,"plasma":9}, # point final centre sens PAS FOPRCEMENT CONSISTENT
-          "circ1":{"xP1":1,"yP1":2,"xP2":4,"yP2":5,"speed":8,"plasma":9}, # point de passage 1  point de passage 2 (3 pts OK)
-          "circ2":{"xC":1,"yC":2,"sens":4}                                # centre et sens 
+    Dico={"line":{"type":0,"xF":1,"yF":2,"zF":3,"speed":8,"plasma":9},        # point final
+          "ezsqx":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
+          "ezsqy":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
+          "arc1":{"type":0,"xF":1,"yF":2,"xP":4,"yP":5,"speed":8,"plasma":9}, # point final point de passage (3 pts ==> OK)
+          "arc2":{"type":0,"xF":1,"yF":2,"xC":4,"yC":5,"sens":6,"speed":8,"plasma":9}, # point final centre sens PAS FOPRCEMENT CONSISTENT
+          "circ1":{"type":0,"xP1":1,"yP1":2,"xP2":4,"yP2":5,"speed":8,"plasma":9}, # point de passage 1  point de passage 2 (3 pts OK)
+          "circ2":{"type":0,"xC":1,"yC":2,"sens":4,"speed":8,"plasma":9}                                # centre et sens 
           }
 
     def __init__(self,parent=None, **kwargs):
@@ -159,17 +160,21 @@ class trajMaker():
         bLoad.grid(row=1,column=2)
         self.topDraw = 0
         if True:
-            self.addLine("line 100 100 1 5 1")
-        if True:
+            self.addLine("type=line xF=100 yF=100 zF=0 speed=5 plasma=1")
+        if False:
             xc,yc=100,200
             xf,yf=100+100*cos(0.45),200+100*sin(0.45)
-            self.addLine(f"arc2 {xf} {yf} {xc} {yc} 1  8 0") # xf yf xc yc sens speed plasma
+            self.addLine(f"type=arc2 xF={xf} yF={yf} xC={xc} yC={yc} sens=1  speed=8 plasma=0") # xf yf xc yc sens speed plasma
+        if False:
+            self.addLine("type=arc1 xF=200 yF=100 xP=150 yP=180 speed=12 plasma=0") # xf yf xp yp  speed plasma
         if True:
-            self.addLine("arc1 200 100 150 180  0") # xf yf xp yp sens speed plasma
-        if True:
-            self.addLine("ezsqx 300 320 5 23 0") # xf yf nzigzag speed plasma
-        if True:
-            self.addLine("ezsqy 400 400 9 2 0") # xf yf nzigzag speed plasma
+            self.addLine("type=circ1 xP1=200 yP1=100 xP2=150 yP2=180 speed=12 plasma=0") #
+        if False:
+            self.addLine("type=circ2 xC=200 yC=100 speed=12 sens=0 plasma=0") #
+        if False:
+            self.addLine("type=ezsqx xF=300 yF=320 nZigZag=5 speed=23 plasma=0") # xf yf nzigzag speed plasma
+        if False:
+            self.addLine("type=ezsqy xF=400 yF=400 nZigZag=9 speed=23 plasma=0") # xf yf nzigzag speed plasma
     # FIN def __init__(self,master=None, **kwargs):
     # ################################################################################
 
@@ -178,8 +183,8 @@ class trajMaker():
         draw the trajectory OR write a file OR do it directly
         section : a string="type finalX finalY finale par_1 ... par_n speed plasma"
         """
-        # print(f"Proccessing {self.trajDescript}")
-        c,r = self.frame.size()
+        print(f"entering proccesTraj: {self.trajDescript}")
+        r = self.frame.size()
         if self.topDraw!=0:
             self.topDraw.destroy()
         self.topDraw = tk.Toplevel(width=410,height=510)
@@ -311,6 +316,29 @@ class trajMaker():
                 # if status!='ok':                    messagebox.showinfo("information",status)
                 xcur = xF
                 ycur = yF
+            elif type=="circ1": # pt de passage 1 pt de passage 2
+                xd = xcur # debut de la trajectoire
+                yd = ycur # debut de la trajectoire
+                xP1 = float(localDico["xP1"]) # x passge1
+                yP1 = float(localDico["yP1"]) # x passge1
+                xP2 = float(localDico["xP2"]) # x passage2
+                yP2 = float(localDico["yP2"]) # y passage2
+                stat,xC,yC,R = fromPtsToCenterR(xd,yd,xP1,yP1,xP2,yP2)
+                if stat!='ok':
+                    messagebox.showerror("","Incompatible data for circ1 (probably the points are aligned)")
+                    return
+                self.canvas.create_oval(xC-R,yC-R,xC+R,yC+R,outline=color,width=w)
+                xF = xcur
+                yF = ycur
+            elif type=="circ2": #  centre et sens
+                xd = xcur # debut de la trajectoire
+                yd = ycur # debut de la trajectoire
+                xC = float(localDico["xC"]) # x center
+                yC = float(localDico["yC"]) # y center
+                R = sqrt((xcur-xC)**2 + (ycur-yC)**2)
+                self.canvas.create_oval(xC-R,yC-R,xC+R,yC+R,outline=color,width=w)
+                xF = xd # closed circle
+                yF = yd # closed circle
             else:
                 messagebox.showinfo("information",f"processTraj: {type} not yet implemented")
             if (xcur-xF)**2 + (ycur-yF)**2 >1e-5:
@@ -416,11 +444,12 @@ class trajMaker():
         for k in range(1,9):
             self.frame.grid_slaves(row=r,column=k)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=r,column=k)[0].config(state="disabled")
-        self.frame.grid_slaves(row=r,column=9)[0].config(state="selected") # plasma checkbutton
-        # specific reset for different type
-        self.frame.grid_slaves(row=r,column=8)[0].config(state="normal")
+        self.frame.grid_slaves(row=r,column=8)[0].config(state="normal") # speed
         self.frame.grid_slaves(row=r,column=8)[0].delete(0,tk.END)
         self.frame.grid_slaves(row=r,column=8)[0].insert(0,"Speed")
+        self.frame.grid_slaves(row=r,column=9)[0].config(state="normal")
+        self.frame.grid_slaves(row=r,column=9)[0].config(state="selected") # plasma checkbutton
+        # specific reset for different type
         if newType=="line":
             self.frame.grid_slaves(row=r,column=1)[0].config(state="normal")
             self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
@@ -649,61 +678,34 @@ class trajMaker():
         w.grid(row=r,column=11) # selecteur        
         if line=="":
             return
-
-        # here we add the line line given as arguments
-        ls = line.split()
-        type = ls[0]
-        if type not in self.implementedTypes:
-            messagebox.showinfo(type+" not yet implemented")
+        # ######################## HERE WE add ADD line GIVEN AS ARGUMENT ########################
+        # line est de la forme "type=xxx xF=xxx       speed=xxx plasma=xxx
+        self.paramDico={}
+        for item in line.split():
+            k,v=item.split("=")
+            self.paramDico[k] = v
+        type = self.paramDico["type"]
+        # ici type est OK et paramDico contient les parametres
+        ok = self.Dico[type].keys() == self.paramDico.keys()
+        if not ok :
+            messagebox.showerror("","incompatibilite dans addLine") # bidon
+            print(f"Dico {self.Dico[type].keys()} paramDico {self.paramDico.keys()}")
             return
         # here a correct type is to be used
-        w = self.frame.grid_slaves(row=r,column=0)[0]
-        w.set(type)
-        print(type)
-        w = self.frame.grid_slaves(row=r,column=1)[0]
-        w.config(state="normal")
-        w.insert(0,ls[1]) #Xfin
-        w = self.frame.grid_slaves(row=r,column=2)[0]
-        w.config(state="normal")
-        w.insert(0,ls[2]) #Yfin
-        if type=="line":
-            w = self.frame.grid_slaves(row=r,column=3)[0]
-            w.config(state="normal")
-            w.insert(0,ls[3]) #Zfin
-            w = self.frame.grid_slaves(row=r,column=8)[0] # speed
-            w.config(state="normal")
-            w.insert(0,ls[4])
-        elif type=="arc1":
-            w = self.frame.grid_slaves(row=r,column=4)[0] # xPassage
-            w.config(state="normal")
-            w.insert(0,ls[3])
-            w = self.frame.grid_slaves(row=r,column=5)[0] # yPassage
-            w.config(state="normal")
-            w.insert(0,ls[4])
-            w = self.frame.grid_slaves(row=r,column=8)[0] # speed
-            w.config(state="normal")
-            w.insert(0,ls[3])
-        elif type=="arc2":
-            w = self.frame.grid_slaves(row=r,column=4)[0] # xCenter
-            w.config(state="normal")
-            w.insert(0,ls[3])
-            w = self.frame.grid_slaves(row=r,column=5)[0] # yCenter
-            w.config(state="normal")
-            w.insert(0,ls[4])
-            w = self.frame.grid_slaves(row=r,column=6)[0] # sens
-            w.config(state="normal")
-            w.insert(0,ls[5])
-            w = self.frame.grid_slaves(row=r,column=8)[0] # speed
-            w.config(state="normal")
-            w.insert(0,ls[6])
-        elif type =="ezsqx" or type =="ezsqy":
-            w = self.frame.grid_slaves(row=r,column=4)[0] # n zigzag
-            w.config(state="normal")
-            w.insert(0,ls[3])
-            w = self.frame.grid_slaves(row=r,column=8)[0] # n speed
-            w.config(state="normal")
-            w.insert(0,ls[4])
 
+        for key in self.paramDico.keys():
+           val = (self.paramDico[key])
+           col = self.Dico[type][key]
+           print(f"{key} je mets {val} en {col}")
+           w.config(state="normal")
+           w = self.frame.grid_slaves(row=r,column=col)[0]
+           if w.__class__!= jcCheckbutton:
+                w.config(state="normal")
+                w.insert(0,val)
+           else:
+                pass
+        return
+ 
     # FIN def addLine(self,line=""):
     # ################################################################################        
 
