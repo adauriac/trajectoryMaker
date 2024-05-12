@@ -150,7 +150,7 @@ class trajMaker():
         badd = tk.Button(self.frameB,text="Add a line",command=self.addLine)
         bSAll = tk.Button(self.frameB,text="Select all",command=self.selectAll)
         bSNone = tk.Button(self.frameB,text="Select none",command=self.deselectAll)
-        bSave = tk.Button(self.frameB,text="Save/show",command=self.go)
+        bSave = tk.Button(self.frameB,text="Show / Save",command=self.go)
         bLoad = tk.Button(self.frameB,text="Load",command=self.loadFile)
         bdel.grid(row=0,column=0)
         badd.grid(row=0,column=1)
@@ -511,7 +511,7 @@ class trajMaker():
             self.frame.grid_slaves(row=r,column=4)[0].insert(0,"xPas2")
             self.frame.grid_slaves(row=r,column=5)[0].config(state="normal") # yPassage2
             self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"yPas2")
+            self.frame.grid_slaves(row=r,column=5)[0].insert(0,"yPas2")
         elif newType=="circ2":
             self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xCenter
             self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
@@ -680,21 +680,21 @@ class trajMaker():
             return
         # ######################## HERE WE add ADD line GIVEN AS ARGUMENT ########################
         # line est de la forme "type=xxx xF=xxx       speed=xxx plasma=xxx
-        self.paramDico={}
+        paramDico={}
         for item in line.split():
             k,v=item.split("=")
-            self.paramDico[k] = v
-        type = self.paramDico["type"]
+            paramDico[k] = v
+        type = paramDico["type"]
         # ici type est OK et paramDico contient les parametres
-        ok = self.Dico[type].keys() == self.paramDico.keys()
+        ok = self.Dico[type].keys() == paramDico.keys()
         if not ok :
             messagebox.showerror("","incompatibilite dans addLine") # bidon
-            print(f"Dico {self.Dico[type].keys()} paramDico {self.paramDico.keys()}")
+            print(f"Dico {self.Dico[type].keys()} paramDico {paramDico.keys()}")
             return
         # here a correct type is to be used
 
-        for key in self.paramDico.keys():
-           val = (self.paramDico[key])
+        for key in paramDico.keys():
+           val = (paramDico[key])
            col = self.Dico[type][key]
            print(f"{key} je mets {val} en {col}")
            w.config(state="normal")
@@ -783,41 +783,21 @@ Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 
         if not ok:
             return
         # f.writelines(enTete)
+        sections = []
         for irow in range(r):
             type = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            xF = self.frame.grid_slaves(row=irow,column=1)[0].get()+" "
-            yF = self.frame.grid_slaves(row=irow,column=2)[0].get()+" "
-            speed = self.frame.grid_slaves(row=irow,column=8)[0].get()+" "
-            plasma = self.frame.grid_slaves(row=1,column=9)[0].get()
-            plasma = str(int(plasma))
-            if type == 'line':
-                zF = self.frame.grid_slaves(row=irow,column=3)[0].get() + " "
-                line = type + " " + xF + yF + zF + speed + plasma
-            elif type == 'ezsqx' or type == 'ezsqy':
-                nZigZag = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
-                line = type + " " + xF + yF + nZigZag + speed + plasma
-            elif type == 'arc1':
-                xP = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
-                yP = self.frame.grid_slaves(row=irow,column=5)[0].get() + " "
-                line = type + " " + xP + yP + speed + plasma
-            elif type == 'circ1':
-                xP1 = self.frame.grid_slaves(row=irow,column=1)[0].get() + " "
-                yP1 = self.frame.grid_slaves(row=irow,column=2)[0].get() + " "
-                xP2 = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
-                yP2 = self.frame.grid_slaves(row=irow,column=5)[0].get() + " "
-                line = type + " " + xP1 + yP1 + xP2 + yP2 +speed + plasma
-            elif type == 'arc2':
-                xC = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
-                yC = self.frame.grid_slaves(row=irow,column=5)[0].get() + " "
-                sens = self.frame.grid_slaves(row=irow,column=6)[0].get() + " "
-                line = type + " " + xF + yF + xC + yC + sens +speed + plasma
-            elif type == 'circ2':
-                xC = self.frame.grid_slaves(row=irow,column=1)[0].get() + " "
-                yC = self.frame.grid_slaves(row=irow,column=2)[0].get() + " "
-                sens = self.frame.grid_slaves(row=irow,column=4)[0].get() + " "
-                line = type + " " + xC + yC + sens +speed + plasma
-            print(line)
-            f.writelines(line+'\n')
+            paramDico = self.Dico[type]
+            section = ""
+            for key in paramDico.keys():
+                k = paramDico[key]
+                print(f"w = self.frame.grid_slaves(row={irow},column={k})[0]")
+                w = self.frame.grid_slaves(row=irow,column=k)[0]
+                val = w.get()
+                val = "0" if "False" else "1" 
+                section += key+"="+val+" "
+                print(section)
+            sections.append(section+'\n')
+        f.writelines(sections)
         f.close()
     # FIN def loadFile(self)
     # ################################################################################        
