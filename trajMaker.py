@@ -92,7 +92,7 @@ class jcCheckbutton(ttk.Checkbutton):
     and read with .get() (return the state)
     """
     def __init__(self, parent,  **kwargs):
-        variable = tk.BooleanVar()
+        variable = tk.IntVar()
         self.v = variable
         super().__init__(parent,  variable=variable, **kwargs)
     
@@ -125,6 +125,7 @@ class trajMaker():
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
     implementedTypes = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2"]
     widthCell = 6
+    # le type doit etre un combobox en colonne 0 
     Dico={"line":{"type":0,"xF":1,"yF":2,"zF":3,"speed":8,"plasma":9},        # point final
           "ezsqx":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
           "ezsqy":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
@@ -159,21 +160,22 @@ class trajMaker():
         bSave.grid(row=1,column=1)
         bLoad.grid(row=1,column=2)
         self.topDraw = 0
+        self.copyed = [] # copyied line as dictionnary to be pasted if asked
         if True:
             self.addLine("type=line xF=100 yF=100 zF=0 speed=5 plasma=1")
         if False:
             xc,yc=100,200
             xf,yf=100+100*cos(0.45),200+100*sin(0.45)
             self.addLine(f"type=arc2 xF={xf} yF={yf} xC={xc} yC={yc} sens=1  speed=8 plasma=0") # xf yf xc yc sens speed plasma
-        if False:
+        if True:
             self.addLine("type=arc1 xF=200 yF=100 xP=150 yP=180 speed=12 plasma=0") # xf yf xp yp  speed plasma
         if True:
             self.addLine("type=circ1 xP1=200 yP1=100 xP2=150 yP2=180 speed=12 plasma=0") #
-        if False:
+        if True:
             self.addLine("type=circ2 xC=200 yC=100 speed=12 sens=0 plasma=0") #
-        if False:
+        if True:
             self.addLine("type=ezsqx xF=300 yF=320 nZigZag=5 speed=23 plasma=0") # xf yf nzigzag speed plasma
-        if False:
+        if True:
             self.addLine("type=ezsqy xF=400 yF=400 nZigZag=9 speed=23 plasma=0") # xf yf nzigzag speed plasma
     # FIN def __init__(self,master=None, **kwargs):
     # ################################################################################
@@ -399,7 +401,7 @@ class trajMaker():
 
     def delLine(self,line):
         """
-        delete the line of the gris therefore the number of line is decremented by one
+        delete the line of the grid therefore the number of line is decremented by one
         """
         c,r = self.frame.grid_size()
         # print(f"entering delLine c,r,line={c,r,line}")
@@ -524,7 +526,7 @@ class trajMaker():
     # FIN def comboboxSelect(self,event,r):
     # ################################################################################
 
-    def insertLineBelow(self,line,tl):
+    def insertLineBelow(self,line,tl,lineToInsert=[]):
         """
         insert an empty line after line k, 0<=k<r
         """
@@ -566,7 +568,7 @@ class trajMaker():
         # FIN def insertLineBelow(self,line,tl):
     # ################################################################################
 
-    def insertLineAbove(self,line,tl):
+    def insertLineAbove(self,line,tl,lineToInsert=[]):
         """
         insert an empty line after line, 0<=k<r moving 
         """
@@ -613,17 +615,44 @@ class trajMaker():
     # ################################################################################
     
     def copyLine(self,line,tl):
-        messagebox.showinfo("","copyLine not yet implemented")
+        c,r = self.frame.grid_size()
+        ok = True
+        try:
+            type = self.frame.grid_slaves(row=line,column=0)[0].get()
+            paramDico = self.Dico[type]
+        except:
+            ok = False
+        if not ok:
+            messagebox.showerror("fatal error","type not accessible")
+            tl.destroy()
+            return
         tl.destroy()
+        dicoCopied= {}
+        for key in paramDico.keys():
+            w = self.frame.grid_slaves(row=line,column=paramDico[key])[0]
+            print(f"{paramDico[key],w}")
+            val = w.get()
+            print(f"val={val}")
+            dicoCopied[key]=val
+        print(f" copied={dicoCopied}")
+        self.copyed.append(dicoCopied)
         self.renumber()
-    # FIN def cpoyLine(self,line,tl)
+    # FIN def copyLine(self,line,tl)
     # ################################################################################
         
     def pasteLine(self,line,tl):
-        messagebox.showinfo("","pasteLine not yet implemented")
+        c,r = self.frame.grid_size()
+        if len(self.copyed)==0:
+            return
+        # on va REMPLACER la ligne courante
+        for icol in range(1,9): # le combobox reste le meme
+                self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
+        paramDico = self.copyed[0]
+        type = paramDico["type"]
+        self.dicoToLine(line,paramDico)
         tl.destroy()
         self.renumber()
-    # FIN def copyLine(self,line,tl)
+    # FIN def pasteLine(self,line,tl)
     # ################################################################################
 
     def addLine(self,line=""):
@@ -655,8 +684,11 @@ class trajMaker():
             butPas.grid(column=0,row=5)
             butCancel.grid(column=0,row=6)
         # FIN def editLine(event):
-        # #############################################################
-        
+        # THE WIDGETS:
+        # ###############################################################
+        #      0          1..8          9          10         11        #
+        # ttk.Combobox 8xttk.Entry jcCheckButton tk.Label jcCheckbutton #
+        #################################################################
         c,r = self.frame.grid_size()
         w = ttk.Combobox(self.frame,values=self.types,width=self.widthCell,state="readonly")
         w.bind("<<ComboboxSelected>>", lambda  event : self.comboboxSelect(event,r))
@@ -692,21 +724,16 @@ class trajMaker():
             print(f"Dico {self.Dico[type].keys()} paramDico {paramDico.keys()}")
             return
         # here a correct type is to be used
-
         for key in paramDico.keys():
            val = (paramDico[key])
            col = self.Dico[type][key]
            print(f"{key} je mets {val} en {col}")
-           w.config(state="normal")
            w = self.frame.grid_slaves(row=r,column=col)[0]
            if w.__class__!= jcCheckbutton:
                 w.config(state="normal")
                 w.insert(0,val)
-           else:
-                pass
         return
- 
-    # FIN def addLine(self,line=""):
+     # FIN def addLine(self,line=""):
     # ################################################################################        
 
     def xchangeWidgets(self,column0=0,row0=0,column1=1,row1=1):
@@ -736,9 +763,11 @@ class trajMaker():
         """
         c,r = self.frame.grid_size()
         print(f"entering loadFile c,r={c,r}")
-        fileName = filedialog.askopenfilename()
+        dataFile = filedialog.askopenfile()
+        if dataFile is None:
+            return
         try :
-            lines = open(fileName).readlines()
+            lines =dataFile.readlines()
             ok = True
         except:
             message.error("Could not open the file {fileName} for reading")
@@ -751,7 +780,6 @@ class trajMaker():
         for line in lines:
             print(line)
             self.addLine(line)
-            
     # FIN def loadFile(self)
     # ################################################################################        
     
@@ -778,7 +806,7 @@ Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 
             f = open(fileName,"w")
             ok = True
         except:
-            message.error("Could not open the file {fileName} for writing")
+            messagebox.error("Could not open the file {fileName} for writing")
             ok = False
         if not ok:
             return
@@ -801,6 +829,87 @@ Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 
         f.close()
     # FIN def loadFile(self)
     # ################################################################################        
+    
+    def insertSelectedLineInPlace(self,line):
+        """
+        replace the single "line" by the list of lines of the selected lines       
+        """
+        c,r = self.frame.grid_size()
+        print(f"entering loadFile c,r={c,r}")
+        for irow in range(r):
+            if  not self.frame.grid_slaves(row=irow,column=11)[0].get():
+                continue
+            # a line to insert : make the corresponding dictionnary
+            paramDico={}
+            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
+            localDico = self.Dico[type]
+            for key in localDico.keys():
+                col = localDico[key]
+                val = self.frame.grid_slaves(row=irow,column=col)[0].get()
+                paramDico[key] = val
+            print(f"{paramDico}")
+    # FIN def insertSelectedLineInPlace(self)
+    # ################################################################################
+
+    def lineToDico(self,line):
+        """
+        return the dictionnary corresponding line
+        """
+        c,r = self.frame.grid_size()
+        if line >=r or line<0:
+            return
+        paramDico={}
+        type = self.frame.grid_slaves(row=line,column=0)[0].get()
+        localDico = self.Dico[type]
+        for key in localDico.keys():
+            col = localDico[key]
+            val = self.frame.grid_slaves(row=line,column=col)[0].get()
+            paramDico[key] = val
+        return paramDico
+    # FIN  def lineToDico(self,line):
+    # ################################################################################
+    
+    def dicoToLine(self,irow,paramDico):
+        """
+        set line irow of grid to paramDico, OVERWRITING the actual content
+        """
+        c,r = self.frame.grid_size()
+        print(f"entering dicoToLine with r,c={r,c} irow={irow}")
+        if irow >=r or irow<0:
+            return
+        # remove acutal line irow
+        typeActual = self.frame.grid_slaves(row=irow,column=0)[0].get() # le type en colonne 0
+        if typeActual!='':
+            print(f"removing typeActual={typeActual}")
+            for icol in self.Dico[typeActual].values():
+                print(f"removing {irow,icol}")
+                w = self.frame.grid_slaves(row=irow,column=icol)[0]
+                if isinstance(w,ttk.Entry):
+                    self.frame.grid_slaves(row=irow,column=icol)[0].delete(0,tk.END)
+                    self.frame.grid_slaves(row=irow,column=icol)[0].config(state="disabled")
+        # set new values
+        type = paramDico["type"]            
+        for key in paramDico.keys():
+            col = self.Dico[type][key]
+            val = paramDico[key]
+            print(f"en {col} mettre {val}")
+            w = self.frame.grid_slaves(row=irow,column=col)[0]
+            w.config(state="enabled")
+            if isinstance(w,ttk.Combobox):
+                w.set(val)
+            elif isinstance(w,ttk.Entry):
+                w.insert(0,val)
+            elif isinstance(w,tk.Label):
+                w.insert(0,val)
+            elif isinstance(w,jcCheckbutton):
+                w.set(val)
+            else:
+                messagebox.error("","aucun des 4 types connus")
+                return
+            
+        
+    # FIN  def lineToDico(self,line):
+    # ################################################################################
 
     """
     Mes conventions
