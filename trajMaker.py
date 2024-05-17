@@ -119,8 +119,8 @@ class trajMaker():
     It can be instancied with a Toplevel, or without (root is then used)
 
     12 columns:
-        0      1    ...   8        9     10     11
-    combobbox entry ... entry  checkbox label selected
+        0              1    ...      8            9          10     11
+    ttk.Combobbox ttk.Entry ... ttk.Entry  jcCheckbutton tk.label jcCheckbutton
     """
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
     implementedTypes = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2"]
@@ -134,15 +134,18 @@ class trajMaker():
           "circ1":{"type":0,"xP1":1,"yP1":2,"xP2":4,"yP2":5,"speed":8,"plasma":9}, # point de passage 1  point de passage 2 (3 pts OK)
           "circ2":{"type":0,"xC":1,"yC":2,"sens":4,"speed":8,"plasma":9}                                # centre et sens 
           }
-
-    def __init__(self,parent=None, **kwargs):
+    def __init__(self,parent=None,widthPhysical=800,heightPhysical=600,widthCanv=510, **kwargs):
         if parent==None:
             parent = tk.Toplevel()
             # parent.overrideredirect(True) widget indeplacable
             # prevent close window:
             # parent.protocol("WM_DELETE_WINDOW", lambda:None)
             self.parent = parent
-        parent.geometry("800x200")
+        parent.geometry("800x400") # the window for the entry 
+        self.widthCanv = widthCanv 
+        self.heightCanv = heightPhysical/widthPhysical * widthCanv
+        self.widthPhysical = widthPhysical
+        self.heightPhysical = heightPhysical
         self.frameB = tk.Frame(parent)
         self.frame = tk.Frame(parent)
         self.frameB.pack()
@@ -170,7 +173,7 @@ class trajMaker():
         if True:
             self.addLine("type=arc1 xF=200 yF=100 xP=150 yP=180 speed=12 plasma=0") # xf yf xp yp  speed plasma
         if True:
-            self.addLine("type=circ1 xP1=200 yP1=100 xP2=150 yP2=180 speed=12 plasma=0") #
+            self.addLine("type=circ1 xP1=200 yP1=120 xP2=150 yP2=180 speed=12 plasma=0") #
         if True:
             self.addLine("type=circ2 xC=200 yC=100 speed=12 sens=0 plasma=0") #
         if True:
@@ -189,14 +192,18 @@ class trajMaker():
         r = self.frame.size()
         if self.topDraw!=0:
             self.topDraw.destroy()
-        self.topDraw = tk.Toplevel(width=410,height=510)
+        self.topDraw = tk.Toplevel(width=self.widthCanv+10,height=self.heightCanv+100)
         self.topDraw.title("TRAJECTORY")
         btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
         btn.place(x=self.topDraw.winfo_width()/2,y=20)
-        self.canvas = tk.Canvas(self.topDraw,width=400,height=500,bg='ivory')
+        labPhysicalDim = tk.Label(self.topDraw,text=f"Phyical dimensions={self.widthPhysical,self.heightPhysical}")
+        labPhysicalDim.place(x=self.topDraw.winfo_width()/2+200,y=20)
+        convFactor = self.widthCanv/self.widthPhysical
+        self.heightCan = convFactor*self.heightPhysical
+        self.canvas = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv,bg='ivory')
         self.canvas.place(x=5,y=55)
 
-        e = 2
+        e = 2 # Line at x=0 or y=0 NOT seen i e=0
         xcur = 0
         ycur = 0
         for section in self.trajDescript:
@@ -217,7 +224,7 @@ class trajMaker():
                 xF = float(localDico["xF"])
                 yF = float(localDico["yF"])
                 zF = float(localDico["zF"])
-                self.canvas.create_line(xcur+e,ycur+e,xF+e,yF+e, fill=color, width=2)
+                self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xF+e,convFactor*yF+e, fill=color, width=2)
                 xcur = xF
                 ycur = yF
             elif type=="ezsqx":
@@ -230,24 +237,24 @@ class trajMaker():
                 LY = yF-ycur
                 L = LY
                 l = LX/(2.0*n) if n!=0 else L
-                self.canvas.create_line(xcur+e,ycur+e,xcur+e,ycur+L+e, fill=color, width=w)
+                self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
                 ycur += L
                 if n==0:
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+l+e,ycur+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     continue
                 for i in range(n):
                     # (xcur,ycur)->(xcur+l,ycur)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+l+e,ycur+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     # (xcur,ycur)->(xcur,ycur-L)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+e,ycur-L+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur-L)+e, fill=color, width=w)
                     ycur -= L
                     # (xcur,ycur)->(xcur+l,ycur)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+l+e,ycur+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     # (xcur,ycur)->(xcur,ycur+L)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+e,ycur+L+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
                     ycur += L
             elif type=="ezsqy":
                 # first: a straight line         _
@@ -259,24 +266,24 @@ class trajMaker():
                 LY = yF-ycur
                 L = LX
                 l = LY/(2.0*n) if n!=0 else L
-                self.canvas.create_line(xcur+L+e,ycur+e,xcur+e,ycur+e, fill=color, width=w)
+                self.canvas.create_line(convFactor*(xcur+L)+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*ycur+e, fill=color, width=w)
                 xcur += L
                 if n==0:
-                    self.canvas.create_line(xcur+e,ycur+l+e,xcur+e,ycur+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*(ycur+l)+e,convFactor*xcur+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     continue
                 for i in range(n):
                     # (xcur,ycur)->(xcur,ycur+l)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+e,ycur+l+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+l)+e, fill=color, width=w)
                     ycur += l
                     # (xcur,ycur)->(xcur-L,ycur)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur-L+e,ycur+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur-L)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur -= L
                     # (xcur,ycur)->(xcur,ycur+l)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+e,ycur+l+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+l)+e, fill=color, width=w)
                     ycur += l
                     # (xcur,ycur)->(xcur+L,ycur)
-                    self.canvas.create_line(xcur+e,ycur+e,xcur+L+e,ycur+e, fill=color, width=w)
+                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+L)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += L
             elif type=="arc1": # pt final et pt passage
                 xF = float(localDico["xF"])
@@ -286,7 +293,7 @@ class trajMaker():
                 xp = float(localDico["xP"]) # point de passage
                 yp = float(localDico["yP"]) # point de passage
                 status,a,b,c,d,start,extent = create_arcParameter(xd,yd,xF,yF,xp,yp)
-                self.canvas.create_arc(a,b,c,d,start=start,extent=extent,style=tk.ARC,outline=color,width=w)
+                self.canvas.create_arc(convFactor*a+e,convFactor*b+e,convFactor*c+e,convFactor*d+e,start=start,extent=extent,style=tk.ARC,outline=color,width=w)
                 if status!='ok':
                     messagebox.showinfo("information",status)
                 xcur = xF
@@ -314,7 +321,7 @@ class trajMaker():
                 af = AfR*180/pi
                 extent = (ad-af) if sens>0 else (ad-af)-360
                 # print(f"self.canvas.create_arc({xc-R,yc-R,xc+R,yc+R},start={-ad},extent={extent},style={tk.ARC})") bidon
-                self.canvas.create_arc(xc-R,yc-R,xc+R,yc+R,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
+                self.canvas.create_arc(convFactor*(xc-R)+e,convFactor*(yc-R)+e,convFactor*(xc+R)+e,convFactor*(yc+R)+e,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
                 # if status!='ok':                    messagebox.showinfo("information",status)
                 xcur = xF
                 ycur = yF
@@ -329,7 +336,7 @@ class trajMaker():
                 if stat!='ok':
                     messagebox.showerror("","Incompatible data for circ1 (probably the points are aligned)")
                     return
-                self.canvas.create_oval(xC-R,yC-R,xC+R,yC+R,outline=color,width=w)
+                self.canvas.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
                 xF = xcur
                 yF = ycur
             elif type=="circ2": #  centre et sens
@@ -338,7 +345,7 @@ class trajMaker():
                 xC = float(localDico["xC"]) # x center
                 yC = float(localDico["yC"]) # y center
                 R = sqrt((xcur-xC)**2 + (ycur-yC)**2)
-                self.canvas.create_oval(xC-R,yC-R,xC+R,yC+R,outline=color,width=w)
+                self.canvas.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
                 xF = xd # closed circle
                 yF = yd # closed circle
             else:
@@ -917,10 +924,10 @@ Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 
 if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
-    root.geometry("600x300")
+    # root.geometry("600x3000")
     v = tk.Scrollbar()
     v.pack(side = tk.LEFT, fill = tk.Y)  
-    my=trajMaker(root)
+    my=trajMaker(root,widthPhysical=800,heightPhysical=600)
     fr = my.frame
     # root.mainloop()
 
