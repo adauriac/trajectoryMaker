@@ -794,16 +794,6 @@ class trajMaker():
         """
         Save with the format imposed by plasmagui
         """
-        enTete = """Numero d'article;XYZ;;;;;;;;;;;;
-Numero de serie;789;;;;;;;;;;;;
-;;;;;;;;;;;;;
-;;;;;;;;;;;;;
-Puissance Plasma (W);1000;;;;;;;;;;;;
-Debit Plasma (l/mn);40;;;;;;;;;;;;
-;;;;;;;;;;;;;
-Description trajectoire;;L;EZSQX;EZSQY;A1;A2;C1;C2;W;START;END;;
-Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 1;0 ou 1;0 ou 1
-"""
         c,r = self.frame.grid_size()
         print(f"entering saveToFile c,r={c,r}")
         fileName = filedialog.asksaveasfilename()
@@ -818,24 +808,42 @@ Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 
         if not ok:
             return
         # f.writelines(enTete)
-        sections = []
+        sections = ""
         for irow in range(r):
-            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            paramDico = self.Dico[type]
-            section = ""
-            for key in paramDico.keys():
-                k = paramDico[key]
-                print(f"w = self.frame.grid_slaves(row={irow},column={k})[0]")
-                w = self.frame.grid_slaves(row=irow,column=k)[0]
-                val = w.get()
-                val = "0" if "False" else "1" 
-                section += key+"="+val+" "
-                print(section)
-            sections.append(section+'\n')
+            paramDico=self.lineToDico(irow)
+            section = self.dicoToStr(paramDico) + '\n'
+            print(f"{section}")
+            sections += section
         f.writelines(sections)
         f.close()
     # FIN def loadFile(self)
     # ################################################################################        
+
+    def strToDico(self,line):
+        """
+        return the dictionnary obtained from line
+        line is key=val ... ley=val
+        """
+        ans = {}
+        ls = line.split()
+        for i in ls:
+            key,val = i.split("=")
+            ans[key] = val
+        return ans
+    # FIN def strToDico(self,line)
+    # ################################################################################
+
+    def dicoToStr(self,dico):
+        """
+        return a string representing the dico
+        line is key=val ... ley=val
+        """
+        ans=""
+        for key,val in dico.items():
+            ans +=f"{key}={val} "
+        return ans
+    # FIN def strToDico(self,line)
+    # ################################################################################
     
     def insertSelectedLineInPlace(self,line):
         """
@@ -912,9 +920,7 @@ Numero d'operation;type;distance;angle;;;;;vitesse;temps (x 1/10 s);0 ou 1;0 ou 
                 w.set(val)
             else:
                 messagebox.error("","aucun des 4 types connus")
-                return
-            
-        
+                return        
     # FIN  def lineToDico(self,line):
     # ################################################################################
 
