@@ -142,7 +142,7 @@ class trajMaker():
             # parent.protocol("WM_DELETE_WINDOW", lambda:None)
             self.parent = parent
         parent.geometry("800x400") # the window for the entry 
-        self.widthCanv = widthCanv 
+        self.widthCanv = widthCanv  
         self.heightCanv = heightPhysical/widthPhysical * widthCanv
         self.widthPhysical = widthPhysical
         self.heightPhysical = heightPhysical
@@ -150,18 +150,33 @@ class trajMaker():
         self.frame = tk.Frame(parent)
         self.frameB.pack()
         self.frame.pack()
+        # Below the entry for the physical dimensions are installed
+        labelHeight = tk.Label(self.frameB,text="Height in mm")
+        self.physHeightVar = tk.StringVar()
+        self.physHeightVar.set("%d"%heightPhysical)
+        entryHeight = ttk.Entry(self.frameB,width=4,textvariable=self.physHeightVar)
+        #
+        labelWidth = tk.Label(self.frameB,text="Width in mm")
+        self.physWidthVar = tk.StringVar()
+        self.physWidthVar.set("%d"%widthPhysical)
+        entryWidth = ttk.Entry(self.frameB,width=4,textvariable=self.physWidthVar)
+        #
         bdel = tk.Button(self.frameB,text="Delete selected lines",command=self.delSelectLines)
         badd = tk.Button(self.frameB,text="Add a line",command=self.addLine)
         bSAll = tk.Button(self.frameB,text="Select all",command=self.selectAll)
         bSNone = tk.Button(self.frameB,text="Select none",command=self.deselectAll)
         bSave = tk.Button(self.frameB,text="Show / Save",command=self.go)
         bLoad = tk.Button(self.frameB,text="Load",command=self.loadFile)
-        bdel.grid(row=0,column=0)
-        badd.grid(row=0,column=1)
-        bSAll.grid(row=0,column=2)
-        bSNone.grid(row=0,column=3)
-        bSave.grid(row=1,column=1)
-        bLoad.grid(row=1,column=2)
+        bdel.grid(row=1,column=0)
+        badd.grid(row=1,column=1)
+        bSAll.grid(row=1,column=2)
+        bSNone.grid(row=1,column=3)
+        bSave.grid(row=2,column=1)
+        bLoad.grid(row=2,column=2)
+        labelWidth.grid(row=0,column=0,sticky='e')
+        entryWidth.grid(row=0,column=1,sticky='w')
+        labelHeight.grid(row=0,column=2,sticky='e')
+        entryHeight.grid(row=0,column=3,sticky='w')
         self.topDraw = 0
         self.copyed = [] # copyied line as dictionnary to be pasted if asked
         if True:
@@ -189,6 +204,10 @@ class trajMaker():
         section : a string="type finalX finalY finale par_1 ... par_n speed plasma"
         """
         print(f"entering proccesTraj: {self.trajDescript}")
+        self.heightPhysical = int(self.physHeightVar.get())
+        self.widthPhysical = int(self.physWidthVar.get())
+        self.heightCanv = round(self.heightPhysical/self.widthPhysical * self.widthCanv)
+
         r = self.frame.size()
         if self.topDraw!=0:
             self.topDraw.destroy()
@@ -196,7 +215,7 @@ class trajMaker():
         self.topDraw.title("TRAJECTORY")
         btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
         btn.place(x=self.topDraw.winfo_width()/2,y=20)
-        labPhysicalDim = tk.Label(self.topDraw,text=f"Phyical dimensions={self.widthPhysical,self.heightPhysical}")
+        labPhysicalDim = tk.Label(self.topDraw,text=f"Phyisical dimensions={self.widthPhysical,self.heightPhysical}")
         labPhysicalDim.place(x=self.topDraw.winfo_width()/2+200,y=20)
         convFactor = self.widthCanv/self.widthPhysical
         self.heightCan = convFactor*self.heightPhysical
