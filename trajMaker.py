@@ -4,6 +4,8 @@ from tkinter import messagebox
 from tkinter import filedialog
 from math import atan2,sin,cos,pi,sqrt
 
+import helper
+
 """
 line: "type x(1) Y(1) Z(1) X(2) Y(2) Z(2) speed data plasma"
 """
@@ -141,7 +143,8 @@ class trajMaker():
             # prevent close window:
             # parent.protocol("WM_DELETE_WINDOW", lambda:None)
             self.parent = parent
-        parent.geometry("800x400") # the window for the entry 
+        parent.geometry("800x400") # the window for the entry
+        self.arc2Fake = 1
         self.widthCanv = widthCanv  
         self.heightCanv = heightPhysical/widthPhysical * widthCanv
         self.widthPhysical = widthPhysical
@@ -151,12 +154,12 @@ class trajMaker():
         self.frameB.pack()
         self.frame.pack()
         # Below the entry for the physical dimensions are installed
-        labelHeight = tk.Label(self.frameB,text="Height in mm")
+        labelHeight = tk.Label(self.frameB,text="Height in mm (y)")
         self.physHeightVar = tk.StringVar()
         self.physHeightVar.set("%d"%heightPhysical)
         entryHeight = ttk.Entry(self.frameB,width=4,textvariable=self.physHeightVar)
         #
-        labelWidth = tk.Label(self.frameB,text="Width in mm")
+        labelWidth = tk.Label(self.frameB,text="Width in mm (x)")
         self.physWidthVar = tk.StringVar()
         self.physWidthVar.set("%d"%widthPhysical)
         entryWidth = ttk.Entry(self.frameB,width=4,textvariable=self.physWidthVar)
@@ -187,13 +190,13 @@ class trajMaker():
             self.addLine(f"type=arc2 xF={xf} yF={yf} xC={xc} yC={yc} sens=1  speed=8 plasma=0") # xf yf xc yc sens speed plasma
         if True:
             self.addLine("type=arc1 xF=200 yF=100 xP=150 yP=180 speed=12 plasma=0") # xf yf xp yp  speed plasma
-        if True:
+        if False:
             self.addLine("type=circ1 xP1=200 yP1=120 xP2=150 yP2=180 speed=12 plasma=0") #
-        if True:
+        if False:
             self.addLine("type=circ2 xC=200 yC=100 speed=12 sens=0 plasma=0") #
-        if True:
+        if False:
             self.addLine("type=ezsqx xF=300 yF=320 nZigZag=5 speed=23 plasma=0") # xf yf nzigzag speed plasma
-        if True:
+        if False:
             self.addLine("type=ezsqy xF=400 yF=400 nZigZag=9 speed=23 plasma=0") # xf yf nzigzag speed plasma
     # FIN def __init__(self,master=None, **kwargs):
     # ################################################################################
@@ -203,7 +206,7 @@ class trajMaker():
         draw the trajectory OR write a file OR do it directly
         section : a string="type finalX finalY finale par_1 ... par_n speed plasma"
         """
-        print(f"entering proccesTraj: {self.trajDescript}")
+        #print(f"entering proccesTraj: {self.trajDescript}")
         self.heightPhysical = int(self.physHeightVar.get())
         self.widthPhysical = int(self.physWidthVar.get())
         self.heightCanv = round(self.heightPhysical/self.widthPhysical * self.widthCanv)
@@ -225,11 +228,10 @@ class trajMaker():
         e = 2 # Line at x=0 or y=0 NOT seen i e=0
         xcur = 0
         ycur = 0
-        for section in self.trajDescript:
+        for cpt,section in enumerate(self.trajDescript):
             # param common to all type of section
             x0 = xcur # debut de la section
             y0 = ycur # debut de la section
-            print(section)
             localDico =dict()
             for ss in section.split():
                 k,v=ss.split("=")
@@ -243,6 +245,10 @@ class trajMaker():
                 xF = float(localDico["xF"])
                 yF = float(localDico["yF"])
                 zF = float(localDico["zF"])
+                if xF>self.widthPhysical or yF>self.heightPhysical:
+                    msg=f"line {cpt} (line) the final point is out of the frame"
+                    messagebox.showerror("fatal",msg)
+                    return
                 self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xF+e,convFactor*yF+e, fill=color, width=2)
                 xcur = xF
                 ycur = yF
@@ -251,6 +257,10 @@ class trajMaker():
                 # second: n              times _| |
                 xF = float(localDico["xF"])
                 yF = float(localDico["yF"])
+                if xF>self.widthPhysical or yF>self.heightPhysical:
+                    msg=f"line {cpt} (ezsqx) the final point is out of the frame"
+                    messagebox.showerror("fatal",msg)
+                    return
                 n = int(localDico["nZigZag"])
                 LX = xF-xcur
                 LY = yF-ycur
@@ -280,6 +290,10 @@ class trajMaker():
                 # second: n          
                 xF = float(localDico["xF"])
                 yF = float(localDico["yF"])
+                if xF>self.widthPhysical or yF>self.heightPhysical:
+                    msg=f"line {cpt} (ezsqy) the final point is out of the frame"
+                    messagebox.showerror("fatal",msg)
+                    return
                 n = int(localDico["nZigZag"])
                 LX = xF-xcur
                 LY = yF-ycur
@@ -315,6 +329,15 @@ class trajMaker():
                 self.canvas.create_arc(convFactor*a+e,convFactor*b+e,convFactor*c+e,convFactor*d+e,start=start,extent=extent,style=tk.ARC,outline=color,width=w)
                 if status!='ok':
                     messagebox.showinfo("information",status)
+                # here test if the trajectory always in the frame
+                xmin,ymin,xmax,ymax = helper.rectangleExinscritEPS(xd, yd, xp, yp, xF, yF)
+                if False: #show the rectangle exinscrit
+                    self.canvas.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
+                if xmin<0 or xmax>self.widthPhysical or ymax<0 or ymax>self.heightPhysical:
+                    msg=f"line {cpt} (arc1) a part of the trajectory is out of the frame"
+                    messagebox.showerror("fatal",msg)
+                    return
+                   
                 xcur = xF
                 ycur = yF
             elif type=="arc2": # pt final, centre et sens
@@ -323,13 +346,17 @@ class trajMaker():
                 xF = float(localDico["xF"])
                 yF = float(localDico["yF"])
                 xc = float(localDico["xC"]) # x center
-                yc = float(localDico["yC"]) # y center
+                if self.arc2Fake:
+                    yc=0.5*(-2*xc*xF + xF**2 + yF**2 + 2*xc*xd - xd**2 - yd**2)/(yF-yd)
+                    messagebox.showinfo("",f"ai force yc={yc} et je ne teste pas que la traj. reste dans le cadre")
+                else:
+                    yc = float(localDico["yC"]) # y center
                 sens = int(localDico["sens"]) # sens
                 # print(f"xc,yc,sens={xc,yc,sens}") # bidon
-                R2 = (xd-xc)**2 + (yd-yc)**2 # rayon calule avec point courant
-                R2a = (xF-xc)**2 + (yF-yc)**2 # rayon calule avec point cible
+                R2 = (xd-xc)**2 + (yd-yc)**2 # rayon calcule avec point courant
+                R2a = (xF-xc)**2 + (yF-yc)**2 # rayon calcule avec point cible
                 if abs(R2-R2a)>0.1: # les rayons sont de l'ordre de 10 a 100 
-                    messagebox.showerror("Error",f"Inconsistent data for arc2 {R2,R2a}")
+                    messagebox.showerror("Error",f"Inconsistent data for arc2 {R2,R2a} d,F,c={xd,yd,xF,yF,xc,yc}")
                     return
                 R = sqrt(R2)
                 AdR = atan2(yd-yc,xd-xc) # angle polaire debut
@@ -342,6 +369,12 @@ class trajMaker():
                 # print(f"self.canvas.create_arc({xc-R,yc-R,xc+R,yc+R},start={-ad},extent={extent},style={tk.ARC})") bidon
                 self.canvas.create_arc(convFactor*(xc-R)+e,convFactor*(yc-R)+e,convFactor*(xc+R)+e,convFactor*(yc+R)+e,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
                 # if status!='ok':                    messagebox.showinfo("information",status)
+                if False: # voir pourquoi ca ne marche pas
+                    X,u,v= helper.rectangleExinscritCES(xc, yc, xd, yd, xF, yF, sens)
+                    xmin,ymin,xmax,ymax = X
+                    print(f"u,v={u,v}")
+                    self.canvas.create_oval(convFactor*(u)-2+e,convFactor*(v)-2+e,convFactor*(u)+2+e,convFactor*(v)+2+e)# visualieation du pt de passage
+                    self.canvas.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 xcur = xF
                 ycur = yF
             elif type=="circ1": # pt de passage 1 pt de passage 2
@@ -355,6 +388,10 @@ class trajMaker():
                 if stat!='ok':
                     messagebox.showerror("","Incompatible data for circ1 (probably the points are aligned)")
                     return
+                if xC-R<0 or xC+R>self.widthPhysical or yC-R<0 or yC+R>self.heightPhysical:
+                    msg=f"line {cpt} (circ1) some part of the trajectory is out of frame"
+                    messagebox.showerror("fatal",msg)
+                    return
                 self.canvas.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
                 xF = xcur
                 yF = ycur
@@ -364,6 +401,10 @@ class trajMaker():
                 xC = float(localDico["xC"]) # x center
                 yC = float(localDico["yC"]) # y center
                 R = sqrt((xcur-xC)**2 + (ycur-yC)**2)
+                if xC-R<0 or xC+R>self.widthPhysical or yC-R<0 or yC+R>self.heightPhysical:
+                    msg=f"line {cpt} (circ2) some part of the trajectory is out of frame"
+                    messagebox.showerror("fatal",msg)
+                    return
                 self.canvas.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
                 xF = xd # closed circle
                 yF = yd # closed circle
@@ -512,6 +553,8 @@ class trajMaker():
             self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=r,column=5)[0].insert(0,"yPass")
         elif newType=="arc2":
+            if self.arc2Fake:
+                messagebox.showinfo("Warning","This is a test version: the yCenter is DEDUCED from xFinal,yFinal,xCenter")
             self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xFin
             self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=r,column=1)[0].insert(0,"Xend")
@@ -753,7 +796,7 @@ class trajMaker():
         for key in paramDico.keys():
            val = (paramDico[key])
            col = self.Dico[type][key]
-           print(f"{key} je mets {val} en {col}")
+           # print(f"{key} je mets {val} en {col}")
            w = self.frame.grid_slaves(row=r,column=col)[0]
            if w.__class__!= jcCheckbutton:
                 w.config(state="normal")
