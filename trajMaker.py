@@ -2,9 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
-from math import atan2,sin,cos,pi,sqrt
-
-import helper
+from math import atan2,sin,cos,pi,sqrt,acos
 
 """
 line: "type x(1) Y(1) Z(1) X(2) Y(2) Z(2) speed data plasma"
@@ -19,7 +17,121 @@ there always x(1) y(1) z(1) = final point(0,1,2) and speed plasma (-2,-1)
 """
 def filterDir(x,t):
     print(list(filter(lambda x:x.find(t)!=-1,dir(x))))
-    
+
+def ORDONNE(a,b,c,d):
+    return (((a)<=(b)) and ((b)<=(c)) and ((c)<=(d)))
+
+def isOnArc( te,  ts,  tp,  t):
+    """
+    arc te<->ts des deux cotes on garde celui qui contient tp,
+    et on demande si t est dessus
+    """
+    if (ORDONNE(te, ts, tp, t)):
+        return 1
+    if (ORDONNE(te, tp, ts, t)):
+        return 0
+    if (ORDONNE(ts, te, tp, t)):
+        return 1
+    if (ORDONNE(ts, tp, te, t)):
+        return 0
+    if (ORDONNE(tp, te, ts, t)):
+        return 1
+    if (ORDONNE(tp, ts, te, t)):
+        return 1
+
+    if (ORDONNE(te, ts, t, tp)):
+        return 1
+    if (ORDONNE(te, tp, t, ts)):
+        return 1
+    if (ORDONNE(ts, te, t, tp)):
+        return 1
+    if (ORDONNE(ts, tp, t, te)):
+        return 1
+    if (ORDONNE(tp, te, t, ts)):
+        return 0
+    if (ORDONNE(tp, ts, t, te)):
+        return 0
+
+    if (ORDONNE(te, t, ts, tp)):
+        return 0
+    if (ORDONNE(te, t, tp, ts)):
+        return 1
+    if (ORDONNE(ts, t, te, tp)):
+        return 0
+    if (ORDONNE(ts, t, tp, te)):
+        return 1
+    if (ORDONNE(tp, t, te, ts)):
+        return 1
+    if (ORDONNE(tp, t, ts, te)):
+        return 1
+
+    if (ORDONNE(t, te, ts, tp)):
+        return 1
+    if (ORDONNE(t, te, tp, ts)):
+        return 0
+    if (ORDONNE(t, ts, te, tp)):
+        return 1
+    if (ORDONNE(t, ts, tp, te)):
+        return 0
+    if (ORDONNE(t, tp, te, ts)):
+        return 1
+    if (ORDONNE(t, tp, ts, te)):
+        return 1
+    return 0 
+
+def rectangleExinscritEPS(xe, ye, xp, yp, xs, ys):
+    """
+    l'arc de cercle est la partie entre (xe,ye) et (xs,ys)
+    du cercle defini par le parcours (xe,ye) -> (x,y) -> (xs,ys)
+    cette fonction retourne les coordonnes du rectangle exinscrit a l'arc
+    """
+    xCenter, yCenter, R = cercleCano(xp, yp, xe, ye, xs, ys)
+    tp = angle(xp - xCenter, yp - yCenter)
+    te = angle(xe - xCenter, ye - yCenter)
+    ts = angle(xs - xCenter, ys - yCenter)
+    ymax = yCenter + R if isOnArc(te, ts, tp, pi / 2) else max(ye, ys) # NORD
+    xmin = xCenter - R if isOnArc(te, ts, tp, pi) else min(ye, ys) # OUEST
+    ymin = yCenter - R if isOnArc(te, ts, tp, 3 * pi / 2) else min(ye, ys) # SUD
+    xmax = xCenter + R if isOnArc(te, ts, tp, 2 * pi) else max(ye, ys) # EST
+    return xmin,ymin,xmax,ymax
+
+def rectangleExinscritCES(xCenter, yCenter, xe, ye, xs, ys, sens):
+    """
+    l'arc de cercle est la partie du cercle de centre xc,yc entre (xe,ye)
+    et (xs,ys) parcouru dans le sens (1=trigo,sinon clockwise)
+    cette fonction retourne les coordonnes du rectangle exinscrit a l'arc
+    """
+    R = sqrt((xe-xCenter)**2 + (ye-yCenter)**2)
+    te = angle(xe - xCenter, ye - yCenter)
+    ts = angle(xs - xCenter, ys - yCenter)
+    tp = (te+ts)/2 if sens else -(te+ts)/2
+    xp = xCenter + R*cos(tp)
+    yp = yCenter + R*sin(tp)
+    print(f"xe,ye,xp,yp,xs,ys={xe,ye,xp,yp,xs,ys}")
+    return rectangleExinscritEPS(xe, ye, xp, yp, xs, ys),xp,yp
+
+def angle(x,y) :
+    """
+    retourne l'angle dans [0,2*pi[
+    """
+    R = sqrt(x * x + y * y)
+    t = acos(x / R) # 0<=t<=pi
+    if (abs(R * sin(t) - y) > 1e-6):
+        t = 2 * pi - t
+    return t
+
+def cercleCano(x1, y1, x2, y2, x3, y3,):
+    """
+    affecte le centre et rayons du cercle passant par (x1,y1),(x2,y2) et x3,y3)
+    """
+    denom = -2*x1*y3 + 2*y1*x3 - 2*x2*y1 + 2*x2*y3 + 2*y2*x1 - 2*y2*x3;
+    num_xCenter = -x1*x1*y3 + y2*x1*x1 - y1*y2*y2 - y1*y1*y3 - y3*y3*y2 + y1*y3*y3 + y1*y1*y2 + y3*x2*x2 + y1*x3*x3 + y3*y2*y2 - y1*x2*x2 - x3*x3*y2
+    num_yCenter = x1*x1*x3 - x1*x3*x3 - x1*y3*y3 + y1*y1*x3 + x2*x2*x1 - x2*x2*x3 - x2*x1*x1 - x2*y1*y1 + x2*x3*x3 + x2*y3*y3 + y2*y2*x1 - y2*y2*x3
+    xCenter = num_xCenter / denom;
+    yCenter = num_yCenter / denom;
+    R = sqrt((x1 - xCenter)*(x1 - xCenter) + (y1 - yCenter)*(y1 - yCenter));
+    return xCenter,yCenter,R
+
 def fromPtsToCenterR(x1,y1,x2,y2,x3,y3):
     """
     return a string and 3 numbers = 'status',xc,yc,R
@@ -330,7 +442,7 @@ class trajMaker():
                 if status!='ok':
                     messagebox.showinfo("information",status)
                 # here test if the trajectory always in the frame
-                xmin,ymin,xmax,ymax = helper.rectangleExinscritEPS(xd, yd, xp, yp, xF, yF)
+                xmin,ymin,xmax,ymax = rectangleExinscritEPS(xd, yd, xp, yp, xF, yF)
                 if False: #show the rectangle exinscrit
                     self.canvas.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 if xmin<0 or xmax>self.widthPhysical or ymax<0 or ymax>self.heightPhysical:
@@ -370,7 +482,7 @@ class trajMaker():
                 self.canvas.create_arc(convFactor*(xc-R)+e,convFactor*(yc-R)+e,convFactor*(xc+R)+e,convFactor*(yc+R)+e,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
                 # if status!='ok':                    messagebox.showinfo("information",status)
                 if False: # voir pourquoi ca ne marche pas
-                    X,u,v= helper.rectangleExinscritCES(xc, yc, xd, yd, xF, yF, sens)
+                    X,u,v= rectangleExinscritCES(xc, yc, xd, yd, xF, yF, sens)
                     xmin,ymin,xmax,ymax = X
                     print(f"u,v={u,v}")
                     self.canvas.create_oval(convFactor*(u)-2+e,convFactor*(v)-2+e,convFactor*(u)+2+e,convFactor*(v)+2+e)# visualieation du pt de passage
