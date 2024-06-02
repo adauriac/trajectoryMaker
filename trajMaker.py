@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 from math import atan2,sin,cos,pi,sqrt,acos
+import sys,time
+# from PIL import Image, ImageTk
 
 """
 line: "type x(1) Y(1) Z(1) X(2) Y(2) Z(2) speed data plasma"
@@ -107,7 +109,7 @@ def rectangleExinscritCES(xCenter, yCenter, xe, ye, xs, ys, sens):
     tp = (te+ts)/2 if sens else -(te+ts)/2
     xp = xCenter + R*cos(tp)
     yp = yCenter + R*sin(tp)
-    print(f"xe,ye,xp,yp,xs,ys={xe,ye,xp,yp,xs,ys}")
+    print(f"rectangleExinscritCES: xe,ye,xp,yp,xs,ys={xe,ye,xp,yp,xs,ys}")
     return rectangleExinscritEPS(xe, ye, xp, yp, xs, ys),xp,yp
 
 def angle(x,y) :
@@ -159,7 +161,7 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     ("ok",x1,y1,x2,y2,start,extent) or ("message",0,0,0,0,0,0
     """
     stat,xc,yc,R = fromPtsToCenterR(xd,yd,xf,yf,xp,yp)
-    # print(f"ds create_arcParameter xc,yc,R={xc,yc,R}") #bidon
+    # print(f"create_arcParameter: xc,yc,R={xc,yc,R}") #bidon
     if stat!='ok':
         return stat,0,0,0,0,0,0
     # angles determination in Rd
@@ -169,13 +171,13 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     if Ad<0:Ad += 2*pi
     if Af<0:Af += 2*pi
     if Ap<0:Ap += 2*pi
-    # print(f"ds create_ArcP les 3 pts: {xc+R*cos(Ad),yc+R*sin(Ad)},{xc+R*cos(Af),yc+R*sin(Af)},{xc+R*cos(Ap),yc+R*sin(Ap)}")
+    # print(f"create_arcParameter: les 3 pts: {xc+R*cos(Ad),yc+R*sin(Ad)},{xc+R*cos(Af),yc+R*sin(Af)},{xc+R*cos(Ap),yc+R*sin(Ap)}")
     # swtich to degree for tkinter
     ad = Ad*180/pi
     af = Af*180/pi
     ap = Ap*180/pi
-    # print(f"ds sub en rd Ad,Af,Ap={Ad,Af,Ap}") # bidon
-    # print(f"ds sub en dg ad,af,ap={ad,af,ap}") # bidon
+    # print(f"create_arcParameter: en rd Ad,Af,Ap={Ad,Af,Ap}") # bidon
+    # print(f"create_arcParameter: en dg ad,af,ap={ad,af,ap}") # bidon
     # here the 3 angles are in Degree on [0,360[ 
     type=-1
     if ad<=ap and ap<af:   #dpf
@@ -191,14 +193,15 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     elif ap<=af and af<ad: #pfd
         type=5
     else:
-        return "impossible error!",0,0,0,0,0,0
+        return "create_arcParameter: impossible error!",0,0,0,0,0,0
     if type==0 or type==3:
         extent  = ad-af
     else:
         extent= 360-(af-ad) if ad<af else -(af-ad)-360
-        # print(f"ok,{xc-R},{yc-R},{xc+R},{yc+R},{ad},{extent}") #ok
+        # print(f"create_arcParameter: ok,{xc-R},{yc-R},{xc+R},{yc+R},{ad},{extent}") #ok
     return "ok",xc-R,yc-R,xc+R,yc+R,-ad,extent
 # FIN def create_arcParameter(xd,yd,xf,yf,xp,yp)
+# #############################################################################################
 
 class jcCheckbutton(ttk.Checkbutton):
     """
@@ -254,17 +257,87 @@ class trajMaker():
             # parent.overrideredirect(True) widget indeplacable
             # prevent close window:
             # parent.protocol("WM_DELETE_WINDOW", lambda:None)
+            print("CREATION DE PARENT")
             self.parent = parent
-        parent.geometry("800x400") # the window for the entry
+        parent.title("Trajectory Maker")
+        parent.resizable(False, False)
+        self.parent = parent
+        colorSpecialAsHelpToWork = False #True
+        withHorizScrollbar = False
+        largParent,hautParent = 615,300
+        largFrameM,hautFrameM = largParent,hautParent
+        largCan,hautCan       = 604,300
+        largFrame,hautFrame   = 0,0  # sans effet
+        self.numberLineMax = 1000
+        largWind,hautWind     = largParent,19*self.numberLineMax
+        largFrameS,hautFrameS = largParent,19
+        bgFrameB = 'green'
+        bgFrameM = 'blue'
+        bgCanvas = 'grey'
+        bgFrame = 'yellow'
+        bgWindow = 'magenta'
+        
+        parent.geometry(f"{largParent}x{hautParent}") # the window for the entry
+        self.frameB = tk.Frame(parent) # B for Button
+        self.frameM = tk.Frame(parent,width=largFrameM,height=hautFrameM-10*hautFrameS) # M for Main
+        self.frameB.pack(expand=True)
+        self.frameM.pack(expand=True)
+        if False:   # Status Bar
+            self.frameS = tk.Frame(parent,width=largFrameS,height=hautFrameS) #S for status
+            self.status = tk.StringVar()
+            self.status.set("Ready")
+            self.status = tk.Label(parent, textvariable=self.status, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+            self.frameS.pack(side=tk.BOTTOM, fill=tk.X)
+        # creation du canvas et des scrollbars dans ce frame
+        self.canvas = tk.Canvas(self.frameM,width=largCan,height=hautCan)
+        self.scrollbar_y = tk.Scrollbar(self.frameM, orient=tk.VERTICAL, command=self.canvas.yview)
+        if withHorizScrollbar:
+            self.scrollbar_x = tk.Scrollbar(self.frameM, orient=tk.HORIZONTAL, command=self.canvas.xview)
+        # Configuration du canvas pour utiliser les scrollbars et positionnement
+        if withHorizScrollbar:
+            self.canvas.configure(yscrollcommand=self.scrollbar_y.set, xscrollcommand=self.scrollbar_x.set)
+        else:
+            self.canvas.configure(yscrollcommand=self.scrollbar_y.set)
+        self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+        if withHorizScrollbar:
+            self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)        
+        # Creation d'un autre frame a l'interieur du canvas pour contenir d'autres widget: THE FRAME
+        self.frame = tk.Frame(self.canvas, width=largFrame,height=hautFrame)
+        if colorSpecialAsHelpToWork:
+            parent.config(bg='red')
+            self.frameM.config(bg=bgFrameM)
+            self.frameB.config(bg=bgFrameB)
+            self.canvas.config(bg=bgCanvas)
+            self.frame.config(bg=bgFrame)
+        self.frame.pack(expand=True)
+        self.windowId = self.canvas.create_window((0, 0), window=self.frame, anchor="nw",width=largWind,height=hautWind)
+        # Mise à jour de la taille du canvas en fonction du contenu
+        self.frame.update_idletasks()
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
+
+        def on_canvas_resize(event):
+            # print(f"\n\nEntering on_canvas_resize event.width,event.height={event.width,event.height}")
+            canvas_width = self.frameM.winfo_width() #event.width
+            canvas_height = self.frameM.winfo_height() #event.height
+            # print(f"on_canvas_resize: canvas_width,canvas_height={canvas_width,canvas_height}")
+            #self.canvas.itemconfig(self.canvas, width=canvas_width, height=canvas_height)
+            self.canvas.config( width=canvas_width, height=canvas_height)
+            # print("on_canvas_resize: inter")
+            self.canvas.config(scrollregion=self.canvas.bbox("all"))
+        self.canvas.bind("<Configure>", on_canvas_resize)
+        #canvas.bind("<Configure>", on_canvas_resize)       
+        # Fonction pour redimensionner le canvas et mettre à jour la région de défilement
+        # def on_resize(event):
+        #     on_canvas_resize(event)
+        #     print(f"Entering on_resize {event.width,event.height}")
+        #     self.canvas.config(self.scrollregion=self.canvas.bbox("all"))
+        # Liaison de l'événement de redimensionnement pour mettre à jour la région de défilement
         self.arc2Fake = 1
         self.widthCanv = widthCanv  
         self.heightCanv = heightPhysical/widthPhysical * widthCanv
         self.widthPhysical = widthPhysical
         self.heightPhysical = heightPhysical
-        self.frameB = tk.Frame(parent)
-        self.frame = tk.Frame(parent)
-        self.frameB.pack()
-        self.frame.pack()
         # Below the entry for the physical dimensions are installed
         labelHeight = tk.Label(self.frameB,text="Height in mm (y)")
         self.physHeightVar = tk.StringVar()
@@ -292,6 +365,7 @@ class trajMaker():
         entryWidth.grid(row=0,column=1,sticky='w')
         labelHeight.grid(row=0,column=2,sticky='e')
         entryHeight.grid(row=0,column=3,sticky='w')
+
         self.topDraw = 0
         self.copyed = [] # copyied line as dictionnary to be pasted if asked
         if True:
@@ -300,7 +374,7 @@ class trajMaker():
             xc,yc=100,200
             xf,yf=100+100*cos(0.45),200+100*sin(0.45)
             self.addLine(f"type=arc2 xF={xf} yF={yf} xC={xc} yC={yc} sens=1  speed=8 plasma=0") # xf yf xc yc sens speed plasma
-        if True:
+        if False:
             self.addLine("type=arc1 xF=200 yF=100 xP=150 yP=180 speed=12 plasma=0") # xf yf xp yp  speed plasma
         if False:
             self.addLine("type=circ1 xP1=200 yP1=120 xP2=150 yP2=180 speed=12 plasma=0") #
@@ -311,6 +385,11 @@ class trajMaker():
         if False:
             self.addLine("type=ezsqy xF=400 yF=400 nZigZag=9 speed=23 plasma=0") # xf yf nzigzag speed plasma
     # FIN def __init__(self,master=None, **kwargs):
+    # ################################################################################
+
+    def bidon(self,st):
+        print(f"bidon: {st} self.frame.winfo_width={self.frame.winfo_width()}")
+    # FIN def bidon(self):
     # ################################################################################
 
     def proccessTraj(self):
@@ -334,8 +413,14 @@ class trajMaker():
         labPhysicalDim.place(x=self.topDraw.winfo_width()/2+200,y=20)
         convFactor = self.widthCanv/self.widthPhysical
         self.heightCan = convFactor*self.heightPhysical
-        self.canvas = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv,bg='ivory')
+        self.canvas = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv)
+        self.canvas.config(bg='ivory')
         self.canvas.place(x=5,y=55)
+        
+        # L'image en BG
+        #self.image = Image.open("./wood-1866642_1280.jpg")
+        #self.background_image = ImageTk.PhotoImage(self.image)
+        #self.canvas.create_image(0, 0, anchor=tk.NW, image=self.background_image)
 
         e = 2 # Line at x=0 or y=0 NOT seen i e=0
         xcur = 0
@@ -443,7 +528,7 @@ class trajMaker():
                     messagebox.showinfo("information",status)
                 # here test if the trajectory always in the frame
                 xmin,ymin,xmax,ymax = rectangleExinscritEPS(xd, yd, xp, yp, xF, yF)
-                if False: #show the rectangle exinscrit
+                if True: #show the rectangle exinscrit
                     self.canvas.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 if xmin<0 or xmax>self.widthPhysical or ymax<0 or ymax>self.heightPhysical:
                     msg=f"line {cpt} (arc1) a part of the trajectory is out of the frame"
@@ -453,6 +538,7 @@ class trajMaker():
                 xcur = xF
                 ycur = yF
             elif type=="arc2": # pt final, centre et sens
+                sens = int(localDico["sens"]) # sens
                 xd = xcur # debut de la trajectoire
                 yd = ycur # debut de la trajectoire
                 xF = float(localDico["xF"])
@@ -463,7 +549,6 @@ class trajMaker():
                     messagebox.showinfo("",f"ai force yc={yc} et je ne teste pas que la traj. reste dans le cadre")
                 else:
                     yc = float(localDico["yC"]) # y center
-                sens = int(localDico["sens"]) # sens
                 # print(f"xc,yc,sens={xc,yc,sens}") # bidon
                 R2 = (xd-xc)**2 + (yd-yc)**2 # rayon calcule avec point courant
                 R2a = (xF-xc)**2 + (yF-yc)**2 # rayon calcule avec point cible
@@ -502,6 +587,7 @@ class trajMaker():
                     return
                 if xC-R<0 or xC+R>self.widthPhysical or yC-R<0 or yC+R>self.heightPhysical:
                     msg=f"line {cpt} (circ1) some part of the trajectory is out of frame"
+                    print(f"proccessTraj: circ1  stat,xC,yC,R={ stat,xC,yC,R}")
                     messagebox.showerror("fatal",msg)
                     return
                 self.canvas.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
@@ -536,6 +622,8 @@ class trajMaker():
         self.trajDescript = []
         # checking syntax
         for l in range(r):
+            if self.frame.grid_slaves(row=l,column=0)==[]:
+                continue
             if not self.frame.grid_slaves(row=l,column=c-1)[0].get():
                 continue
             w = self.frame.grid_slaves(row=l,column=0)[0]
@@ -560,41 +648,72 @@ class trajMaker():
     # FIN def go(self):
     # ################################################################################
             
-    def delSelectLines(self):
+    def delAll(self):
+        """
+        the line is still in the grid but all cells of the are none
+        """
         c,r = self.frame.grid_size()
-        print(f"entering delSelectLines,c,r={c,r}")
-        while True:
-            somethingDone = False
-            c,r = self.frame.grid_size()
-            for i in range(r):
-                doIt = self.frame.grid_slaves(row=i,column=11)[0].get()
-                if not doIt: # selectelines
-                    continue
-                self.delLine(i)
-                somethingDone = True
-                break
-            if not somethingDone:
-                break
+        print(f"delAll: entering  c,r={c,r} at {time.time()}")
+        self.frame.update_idletasks()
+        tDeb = time.time()
+        for w in self.frame.grid_slaves():
+            w.destroy()
+        self.frame.after_idle(lambda : print(f"loadFile callback: {r,tDeb,(time.time()-tDeb)}"))
+        print(f"delAll: leaving at {time.time()}")
+    # FIN def delAll(self):
+    # ################################################################################
+
+    def delSelectLines(self):
+        """
+        the line is still in the grid but all cells of the are none
+        """
+        c,r = self.frame.grid_size()
+        print(f"delSelectLines: entering  c,r={c,r} at {time.time()}")
+        kept=[]
+        for irow in range(r):
+            if self.frame.grid_slaves(row=irow,column=0)==[]:
+                continue
+            doIt = self.frame.grid_slaves(row=irow,column=11)[0].get()
+            if doIt: # selectelines
+                self.delLine(irow)
+        print(f"delSelectLines: leaving at {time.time()}")
     # FIN def delSelectLines(self):
     # ################################################################################
 
-    def delLine(self,line):
+    def overWriteLine1ByLine2(self,line1,line2):
         """
-        delete the line of the grid therefore the number of line is decremented by one
+        line1 is REPLACED by line2,
+        therefore line2 appears twice and line1 does not appear anymore
         """
         c,r = self.frame.grid_size()
-        # print(f"entering delLine c,r,line={c,r,line}")
+        print(f"overWriteLine1ByLine2: entering c,r={c,r}")
+        if line1>=r or line2>=r:
+            return
+        for icol in range(c):
+            w = self.frame.grid_slaves(row=line2,column=icol)[0]
+            self.frame.grid_slaves(row=line1,column=icol)[0].destroy()
+            input("?")
+            w.grid(row=line1,column=icol)
+            input("??")
+    # FIN def overWriteLine1ByLine2(self,line1,line2)
+    # ################################################################################
+    
+    def delLine(self,line):
+        """
+        all cells of line are destroy (ie contains []),
+        therefore the number of row is NOT changed, but empy line are not shown
+        """
+        c,r = self.frame.grid_size()
+        # print(f"delLine: entering c,r,line={c,r,line}")
+        # self.frame.update_idletasks()
         if line<0 or line>= r :
             return
         # delete line
         for icol in range(c):
-            self.frame.grid_slaves(row=line,column=icol)[0].destroy()
-        for irow in range(line+1,r):
-            for icol in range(c):
-                w =  self.frame.grid_slaves(row=irow,column=icol)[0]
-                w.grid(row=irow-1,column=icol)
-        self.renumber()
-        # print(f"leaving delLine c,r={self.frame.grid_size()}")
+            if self.frame.grid_slaves(row=line,column=icol) != []:
+                self.frame.grid_slaves(row=line,column=icol)[0].destroy()
+        #self.renumber()
+        # print(f"delLine: leaving  c,r={self.frame.grid_size()}")
     # FIN def delLine (self,line)
     # ################################################################################
             
@@ -608,124 +727,126 @@ class trajMaker():
     def selectAll(self):
         c,r = self.frame.grid_size()
         for i in range(r):
+            if self.frame.grid_slaves(row=i,column=11)==[]:
+                continue
             self.frame.grid_slaves(row=i,column=11)[0].set(True)
     # FIN def selectAll(self):
     # ################################################################################
 
-    def comboboxSelect(self,event,r):
+    def comboboxSelect(self,event,irow):
         """
-        called by the combobox of row=r and column=0 
+        called by the combobox of row=irow and column=0 
         """
-        c,r1=self.frame.grid_size()
-        print("entering comboSelect c=",c," r=",r)
-        print(f"{self.frame.grid_slaves(row=r,column=0)}")
-        w = self.frame.grid_slaves(row=r,column=0)[0]
+        c,r=self.frame.grid_size()
+        print(f"comboSelect: entering  c,r={c,r}")
+        print(f"in comboSelect {self.frame.grid_slaves(row=r,column=0)}")
+        w = self.frame.grid_slaves(row=irow,column=0)[0]
         newType = w.get()
         # reset common for all type
         for k in range(1,9):
-            self.frame.grid_slaves(row=r,column=k)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=k)[0].config(state="disabled")
-        self.frame.grid_slaves(row=r,column=8)[0].config(state="normal") # speed
-        self.frame.grid_slaves(row=r,column=8)[0].delete(0,tk.END)
-        self.frame.grid_slaves(row=r,column=8)[0].insert(0,"Speed")
-        self.frame.grid_slaves(row=r,column=9)[0].config(state="normal")
-        self.frame.grid_slaves(row=r,column=9)[0].config(state="selected") # plasma checkbutton
+            self.frame.grid_slaves(row=irow,column=k)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=k)[0].config(state="disabled")
+        self.frame.grid_slaves(row=irow,column=8)[0].config(state="normal") # speed
+        self.frame.grid_slaves(row=irow,column=8)[0].delete(0,tk.END)
+        self.frame.grid_slaves(row=irow,column=8)[0].insert(0,"Speed")
+        self.frame.grid_slaves(row=irow,column=9)[0].config(state="normal")
+        self.frame.grid_slaves(row=irow,column=9)[0].config(state="selected") # plasma checkbutton
         # specific reset for different type
         if newType=="line":
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal")
-            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"Xend")
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal")
-            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"Yend")
-            self.frame.grid_slaves(row=r,column=3)[0].config(state="normal")
-            self.frame.grid_slaves(row=r,column=3)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=3)[0].insert(0,"Zend")
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal")
+            self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"Xend")
+            self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal")
+            self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"Yend")
+            self.frame.grid_slaves(row=irow,column=3)[0].config(state="normal")
+            self.frame.grid_slaves(row=irow,column=3)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=3)[0].insert(0,"Zend")
         elif newType=="ezsqx" or newType=="ezsqy":
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal")
-            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"Xend")
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal")
-            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"Yend")
-            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal")
-            self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"Nzigzag")
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal")
+            self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"Xend")
+            self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal")
+            self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"Yend")
+            self.frame.grid_slaves(row=irow,column=4)[0].config(state="normal")
+            self.frame.grid_slaves(row=irow,column=4)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=4)[0].insert(0,"Nzigzag")
         elif newType=="arc1" :
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xFin
-            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"Xend")
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yFin
-            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"Yend")
-            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal") # xPassage
-            self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"xPass")
-            self.frame.grid_slaves(row=r,column=5)[0].config(state="normal") # yPassage
-            self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=5)[0].insert(0,"yPass")
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal") # xFin
+            self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"Xend")
+            self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal") # yFin
+            self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"Yend")
+            self.frame.grid_slaves(row=irow,column=4)[0].config(state="normal") # xPassage
+            self.frame.grid_slaves(row=irow,column=4)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=4)[0].insert(0,"xPass")
+            self.frame.grid_slaves(row=irow,column=5)[0].config(state="normal") # yPassage
+            self.frame.grid_slaves(row=irow,column=5)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=5)[0].insert(0,"yPass")
         elif newType=="arc2":
             if self.arc2Fake:
                 messagebox.showinfo("Warning","This is a test version: the yCenter is DEDUCED from xFinal,yFinal,xCenter")
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xFin
-            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"Xend")
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yFin
-            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"Yend")
-            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal") # xCenter
-            self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"xCenter")
-            self.frame.grid_slaves(row=r,column=5)[0].config(state="normal") # yCenter
-            self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=5)[0].insert(0,"yCenter")
-            self.frame.grid_slaves(row=r,column=6)[0].config(state="normal") # sens
-            self.frame.grid_slaves(row=r,column=6)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=6)[0].insert(0,"Sens")
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal") # xFin
+            self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"Xend")
+            self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal") # yFin
+            self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"Yend")
+            self.frame.grid_slaves(row=irow,column=4)[0].config(state="normal") # xCenter
+            self.frame.grid_slaves(row=irow,column=4)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=4)[0].insert(0,"xCenter")
+            self.frame.grid_slaves(row=irow,column=5)[0].config(state="normal") # yCenter
+            self.frame.grid_slaves(row=irow,column=5)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=5)[0].insert(0,"yCenter")
+            self.frame.grid_slaves(row=irow,column=6)[0].config(state="normal") # sens
+            self.frame.grid_slaves(row=irow,column=6)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=6)[0].insert(0,"Sens")
         elif newType=="circ1":
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xPassage1
-            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"xPas1")
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yPassage1
-            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"yPas1")
-            self.frame.grid_slaves(row=r,column=4)[0].config(state="normal") # xPassage2
-            self.frame.grid_slaves(row=r,column=4)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=4)[0].insert(0,"xPas2")
-            self.frame.grid_slaves(row=r,column=5)[0].config(state="normal") # yPassage2
-            self.frame.grid_slaves(row=r,column=5)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=5)[0].insert(0,"yPas2")
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal") # xPassage1
+            self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"xPas1")
+            self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal") # yPassage1
+            self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"yPas1")
+            self.frame.grid_slaves(row=irow,column=4)[0].config(state="normal") # xPassage2
+            self.frame.grid_slaves(row=irow,column=4)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=4)[0].insert(0,"xPas2")
+            self.frame.grid_slaves(row=irow,column=5)[0].config(state="normal") # yPassage2
+            self.frame.grid_slaves(row=irow,column=5)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=5)[0].insert(0,"yPas2")
         elif newType=="circ2":
-            self.frame.grid_slaves(row=r,column=1)[0].config(state="normal") # xCenter
-            self.frame.grid_slaves(row=r,column=1)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=1)[0].insert(0,"xCenter")
-            self.frame.grid_slaves(row=r,column=2)[0].config(state="normal") # yCenter
-            self.frame.grid_slaves(row=r,column=2)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=r,column=2)[0].insert(0,"yCenter")
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal") # xCenter
+            self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"xCenter")
+            self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal") # yCenter
+            self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"yCenter")
         else:
             messagebox.showinfo("Show info","Not yet implemented")
     # FIN def comboboxSelect(self,event,r):
     # ################################################################################
 
-    def insertLineBelow(self,line,tl,lineToInsert=[]):
+    def insertLineBelow(self,line,toplevelEditLine,lineToInsert=[]):
         """
         insert an empty line after line k, 0<=k<r
         """
         c,r = self.frame.grid_size()
         if line<0 or line>=r:
-            tl.destroy()
+            toplevelEditLine.destroy()
             return
-        print(f"duplique decale vers le bas les lignes {line} .. derniere ")
+        print(f"Entering insertLineBelow duplique decale vers le bas les lignes {line} .. derniere ")
         c,r = self.frame.size()
         self.addLine()
         if line==r-1:
-            tl.destroy()
+            toplevelEditLine.destroy()
             return           
         # duplication des combobox de choix de type column=0
         for irow in range(r-1,line,-1):
-            print(f"irow={irow}")
+            print(f"insertLineBelow: irow={irow}")
             type = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            print(f"type={type}")
+            print(f"insertLineBelow:type={type}")
             self.frame.grid_slaves(row=irow+1,column=0)[0].set(type)
         self.frame.grid_slaves(row=line+1,column=0)[0].set("")
         # duplications des parametres de col 1 a col 9
@@ -743,19 +864,19 @@ class trajMaker():
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].insert(0,val)
             self.frame.grid_slaves(row=line+1,column=icol)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=line+1,column=icol)[0].insert(0,"")
-        tl.destroy()
+        toplevelEditLine.destroy()
         self.renumber()
         return
-        # FIN def insertLineBelow(self,line,tl):
+        # FIN def insertLineBelow(self,line,toplevelEditLine):
     # ################################################################################
 
-    def insertLineAbove(self,line,tl,lineToInsert=[]):
+    def insertLineAbove(self,line,toplevelEditLine,lineToInsert=[]):
         """
         insert an empty line after line, 0<=k<r moving 
         """
         c,r = self.frame.grid_size()
         if line<0 or line>=r:
-            tl.destroy()
+            toplevelEditLine.destroy()
             return
         print("duplique decale vers le bas les lignes {line} .. derniere ")
         c,r = self.frame.size()
@@ -780,22 +901,22 @@ class trajMaker():
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].insert(0,val)
             self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=line,column=icol)[0].insert(0,"")
-        tl.destroy()
+        toplevelEditLine.destroy()
         self.renumber()
         return
-        # FIN def insertLineAbove(self,line,tl):
+        # FIN def insertLineAbove(self,line,toplevelEditLine):
     # ################################################################################
     
-    def removeLine(self,line,tl):
-        print(f"entering removeLine with {line} {tl}")
+    def removeLine(self,line,toplevelEditLine):
+        print(f"removeLine: entering with {line} {toplevelEditLine}")
         for icol in range(11):
             self.frame.grid_slaves(row=line,column=icol)[0].grid_remove()
-        tl.destroy()
+        toplevelEditLine.destroy()
         self.renumber()
-    # FIN def removeLine(self,line,tl)
+    # FIN def removeLine(self,line,toplevelEditLine)
     # ################################################################################
     
-    def copyLine(self,line,tl):
+    def copyLine(self,line,toplevelEditLine):
         c,r = self.frame.grid_size()
         ok = True
         try:
@@ -805,35 +926,35 @@ class trajMaker():
             ok = False
         if not ok:
             messagebox.showerror("fatal error","type not accessible")
-            tl.destroy()
+            toplevelEditLine.destroy()
             return
-        tl.destroy()
+        toplevelEditLine.destroy()
         dicoCopied= {}
         for key in paramDico.keys():
             w = self.frame.grid_slaves(row=line,column=paramDico[key])[0]
-            print(f"{paramDico[key],w}")
+            print(f"copyLine: {paramDico[key],w}")
             val = w.get()
             print(f"val={val}")
             dicoCopied[key]=val
-        print(f" copied={dicoCopied}")
+        print(f"insertLineBelow: copied={dicoCopied}")
         self.copyed.append(dicoCopied)
         self.renumber()
-    # FIN def copyLine(self,line,tl)
+    # FIN def copyLine(self,line,toplevelEditLine)
     # ################################################################################
         
-    def pasteLine(self,line,tl):
+    def pasteLine(self,line,toplevelEditLine):
         c,r = self.frame.grid_size()
         if len(self.copyed)==0:
             return
         # on va REMPLACER la ligne courante
         for icol in range(1,9): # le combobox reste le meme
-                self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
         paramDico = self.copyed[0]
         type = paramDico["type"]
         self.dicoToLine(line,paramDico)
-        tl.destroy()
+        toplevelEditLine.destroy()
         self.renumber()
-    # FIN def pasteLine(self,line,tl)
+    # FIN def pasteLine(self,line,toplevelEditLine)
     # ################################################################################
 
     def addLine(self,line=""):
@@ -842,21 +963,21 @@ class trajMaker():
             return
         def editLine(event,line):
             print("entering editLine ",line)
-            tl = tk.Toplevel()
-            tl.title("Edit")
-            tl.protocol("WM_DELETE_WINDOW",close )
-            tl.bind("<Destroy>", close)
+            toplevelEditLine = tk.Toplevel()
+            toplevelEditLine.title("Edit")
+            toplevelEditLine.protocol("WM_DELETE_WINDOW",close )
+            toplevelEditLine.bind("<Destroy>", close)
             # while this toplevel is living NO other action is possible :
-            tl.focus_force()
-            tl.wait_visibility()
-            tl.grab_set()
-            lab = tk.Label(tl,text="Line %d"%(line+1),width=17)
-            butInsBel = tk.Button(tl,text="Insert line below",width=17,command=lambda :self.insertLineBelow(line,tl))
-            butInsAbo = tk.Button(tl,text="Insert line above",width=17,command=lambda :self.insertLineAbove(line,tl))
-            butDel = tk.Button(tl,text="Delete line",width=17,command=lambda :self.removeLine(line,tl))
-            butCop = tk.Button(tl,text="Copy line",width=17,command=lambda :self.copyLine(line,tl))
-            butPas = tk.Button(tl,text="Paste line",width=17,command=lambda :self.pasteLine(line,tl))
-            butCancel = tk.Button(tl,text="Cancel",width=17,command= lambda: tl.destroy())
+            toplevelEditLine.focus_force()
+            toplevelEditLine.wait_visibility()
+            toplevelEditLine.grab_set()
+            lab = tk.Label(toplevelEditLine,text="Line %d"%(line+1),width=17)
+            butInsBel = tk.Button(toplevelEditLine,text="Insert line below",width=17,command=lambda :self.insertLineBelow(line,toplevelEditLine))
+            butInsAbo = tk.Button(toplevelEditLine,text="Insert line above",width=17,command=lambda :self.insertLineAbove(line,toplevelEditLine))
+            butDel = tk.Button(toplevelEditLine,text="Delete line",width=17,command=lambda :self.removeLine(line,toplevelEditLine))
+            butCop = tk.Button(toplevelEditLine,text="Copy line",width=17,command=lambda :self.copyLine(line,toplevelEditLine))
+            butPas = tk.Button(toplevelEditLine,text="Paste line",width=17,command=lambda :self.pasteLine(line,toplevelEditLine))
+            butCancel = tk.Button(toplevelEditLine,text="Cancel",width=17,command= lambda: toplevelEditLine.destroy())
             lab.grid(column=0,row=0)
             butInsAbo.grid(column=0,row=1)
             butInsBel.grid(column=0,row=2)
@@ -871,6 +992,9 @@ class trajMaker():
         # ttk.Combobox 8xttk.Entry jcCheckButton tk.Label jcCheckbutton #
         #################################################################
         c,r = self.frame.grid_size()
+        if r >= self.numberLineMax-1:
+            messagebox.showinfo("error",f"maximumm number of line {self.numberLineMax} reached")
+            return
         w = ttk.Combobox(self.frame,values=self.types,width=self.widthCell,state="readonly")
         w.bind("<<ComboboxSelected>>", lambda  event : self.comboboxSelect(event,r))
         w.grid(row=r,column=0) # choix de prochain section
@@ -881,39 +1005,43 @@ class trajMaker():
         w = jcCheckbutton(self.frame,text="Plasma",width=self.widthCell)
         w.set(False);
         w.grid(row=r,column=9) # plasma
-        w = tk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=2,relief="solid",bg="white")
+        w = tk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=4,relief="solid",bg="white")
         w.grid(row=r,column=10) # label
         w.bind('<Button-1>', lambda event : editLine(event,r))
         w.bind("<Enter>", lambda event : event.widget.config(bg="red"))
         w.bind("<Leave>", lambda event : event.widget.config(bg="white"))
-        w = jcCheckbutton(self.frame,width=self.widthCell)
+        w = jcCheckbutton(self.frame,width=0)
         w.set(True);
         w.grid(row=r,column=11) # selecteur        
         if line=="":
             return
         # ######################## HERE WE add ADD line GIVEN AS ARGUMENT ########################
-        # line est de la forme "type=xxx xF=xxx       speed=xxx plasma=xxx
-        paramDico={}
-        for item in line.split():
-            k,v=item.split("=")
-            paramDico[k] = v
-        type = paramDico["type"]
-        # ici type est OK et paramDico contient les parametres
-        ok = self.Dico[type].keys() == paramDico.keys()
-        if not ok :
-            messagebox.showerror("","incompatibilite dans addLine") # bidon
-            print(f"Dico {self.Dico[type].keys()} paramDico {paramDico.keys()}")
-            return
-        # here a correct type is to be used
-        for key in paramDico.keys():
-           val = (paramDico[key])
-           col = self.Dico[type][key]
-           # print(f"{key} je mets {val} en {col}")
-           w = self.frame.grid_slaves(row=r,column=col)[0]
-           if w.__class__!= jcCheckbutton:
-                w.config(state="normal")
-                w.insert(0,val)
+        # line is a STRING "type=xxx xF=xxx       speed=xxx plasma=xxx
+        dico = self.strToDico(line)
+        self.dicoToLine(r,dico)
         return
+        # ancienne version
+        # paramDico={}
+        # for item in line.split():
+        #     k,v=item.split("=")
+        #     paramDico[k] = v
+        # type = paramDico["type"]
+        # # ici type est OK et paramDico contient les parametres
+        # ok = self.Dico[type].keys() == paramDico.keys()
+        # if not ok :
+        #     messagebox.showerror("","incompatibilite dans addLine") # bidon
+        #     print(f"addLine: Dico {self.Dico[type].keys()} paramDico {paramDico.keys()}")
+        #     return
+        # # here a correct type is to be used
+        # for key in paramDico.keys():
+        #    val = (paramDico[key])
+        #    col = self.Dico[type][key]
+        #    # print(f"{key} je mets {val} en {col}")
+        #    w = self.frame.grid_slaves(row=r,column=col)[0]
+        #    if w.__class__!= jcCheckbutton:
+        #         w.config(state="normal")
+        #         w.insert(0,val)
+        # return
      # FIN def addLine(self,line=""):
     # ################################################################################        
 
@@ -933,8 +1061,11 @@ class trajMaker():
 
     def renumber(self):
         c,r = self.frame.grid_size()
+        z = 1
         for i in range(r):
-            self.frame.grid_slaves(row=i,column=10)[0]["text"] = "%d"%(i+1)
+            if self.frame.grid_slaves(row=i,column=10)!= []:
+                self.frame.grid_slaves(row=i,column=10)[0]["text"] = "%d"%z
+                z += 1
     # FIN def renumber(self):
     # ################################################################################
     
@@ -943,7 +1074,8 @@ class trajMaker():
         copy line l0 into line l1 which is therefore lost
         """
         c,r = self.frame.grid_size()
-        print(f"entering loadFile c,r={c,r}")
+        print(f"loadFile: entering  c,r={c,r}")
+        tDeb= time.time()
         dataFile = filedialog.askopenfile()
         if dataFile is None:
             return
@@ -951,18 +1083,56 @@ class trajMaker():
             lines =dataFile.readlines()
             ok = True
         except:
-            message.error("Could not open the file {fileName} for reading")
+            messagebox.showerror("Error","Could not open the file {fileName} for reading")
             ok = False
         if not ok:
             return
+        # ESSAI D'ACCELERATION DE LOAD
+        self.frame.grid_propagate(False)
+        self.frame.update_idletasks()
+        # FIN ESSAI D'ACCELERATION DE LOAD
         # update the gui
-        self.selectAll()
-        self.delSelectLines()
-        for line in lines:
-            print(line)
+        for w in self.frame.grid_slaves():
+            w.destroy()
+        for cpt,line in enumerate(lines):
+            # print(f"loadFile: {cpt}")
+            self.frame.update_idletasks()
+            if cpt>=self.numberLineMax:
+                messagebox.showerror("",f"Maximum number of lines {self.numberLineMax} reached")
+                break
             self.addLine(line)
+        #self.frame.grid_propagate(True)
+        self.frame.after_idle(lambda : print(f"loadFile callback: n,tDeb,duree={r,tDeb,(time.time()-tDeb)}"))
+        print(f"loadFile: leaving")
     # FIN def loadFile(self)
-    # ################################################################################        
+    # ################################################################################
+
+    def loadFileToTable(self):
+        """
+        copy line l0 into line l1 which is therefore lost
+        """
+        c,r = self.frame.grid_size()
+        print(f"loadFileToTable: entering  c,r={c,r}")
+        dataFile = filedialog.askopenfile()
+        if dataFile is None:
+            return
+        try :
+            lines =dataFile.readlines()
+            ok = True
+        except:
+            messagebox.showerror("Error","Could not open the file {fileName} for reading")
+            ok = False
+        if not ok:
+            return
+        # update the table
+        self.table=[]
+        for cpt,line in enumerate(lines):
+            ls = line.split()
+            for i in ls:
+                key,val=i.split("=")
+        print(f"loadFileToTable: leaving")
+    # FIN def loadFileToTable(self)
+    # ################################################################################   
     
     def saveToFile(self):
         """
@@ -977,20 +1147,21 @@ class trajMaker():
             f = open(fileName,"w")
             ok = True
         except:
-            messagebox.error("Could not open the file {fileName} for writing")
+            messagebox.showerror("Could not open the file {fileName} for writing")
             ok = False
         if not ok:
             return
         # f.writelines(enTete)
         sections = ""
         for irow in range(r):
+            if self.frame.grid_slaves(row=irow,column=0)==[]:
+                continue
             paramDico=self.lineToDico(irow)
             section = self.dicoToStr(paramDico) + '\n'
-            print(f"{section}")
             sections += section
         f.writelines(sections)
         f.close()
-    # FIN def loadFile(self)
+    # FIN def saveToFile(self)
     # ################################################################################        
 
     def strToDico(self,line):
@@ -1001,7 +1172,14 @@ class trajMaker():
         ans = {}
         ls = line.split()
         for i in ls:
-            key,val = i.split("=")
+            ok = True
+            try:
+                key,val = i.split("=")
+            except:
+                ok = False
+            if not ok:
+                messagebox.showerror("in strToDico",f"line {line.replace("\n","")} not OK")
+                sys.exit(0)
             ans[key] = val
         return ans
     # FIN def strToDico(self,line)
@@ -1024,7 +1202,7 @@ class trajMaker():
         replace the single "line" by the list of lines of the selected lines       
         """
         c,r = self.frame.grid_size()
-        print(f"entering loadFile c,r={c,r}")
+        print(f"insertSelectedLineInPlace: entering  c,r={c,r}")
         for irow in range(r):
             if  not self.frame.grid_slaves(row=irow,column=11)[0].get():
                 continue
@@ -1063,15 +1241,15 @@ class trajMaker():
         set line irow of grid to paramDico, OVERWRITING the actual content
         """
         c,r = self.frame.grid_size()
-        print(f"entering dicoToLine with r,c={r,c} irow={irow}")
+        # print(f"dicoToLine: entering with r,c={r,c} irow={irow}")
         if irow >=r or irow<0:
             return
         # remove acutal line irow
         typeActual = self.frame.grid_slaves(row=irow,column=0)[0].get() # le type en colonne 0
         if typeActual!='':
-            print(f"removing typeActual={typeActual}")
+            print(f"dicoToLine: removing typeActual={typeActual}")
             for icol in self.Dico[typeActual].values():
-                print(f"removing {irow,icol}")
+                print(f"dicoToLine: removing {irow,icol}")
                 w = self.frame.grid_slaves(row=irow,column=icol)[0]
                 if isinstance(w,ttk.Entry):
                     self.frame.grid_slaves(row=irow,column=icol)[0].delete(0,tk.END)
@@ -1081,7 +1259,7 @@ class trajMaker():
         for key in paramDico.keys():
             col = self.Dico[type][key]
             val = paramDico[key]
-            print(f"en {col} mettre {val}")
+            #print(f"lineToDico: en {col} mettre {val}")
             w = self.frame.grid_slaves(row=irow,column=col)[0]
             w.config(state="enabled")
             if isinstance(w,ttk.Combobox):
@@ -1093,10 +1271,38 @@ class trajMaker():
             elif isinstance(w,jcCheckbutton):
                 w.set(val)
             else:
-                messagebox.error("","aucun des 4 types connus")
+                messagebox.showerror("","aucun des 4 types connus")
                 return        
     # FIN  def lineToDico(self,line):
     # ################################################################################
+
+    def dim(self):
+        """
+        output the width of pribcipal widget
+        """
+        print(f"self.parent={self.parent.winfo_width()}")
+        print(f"self.frameB={self.frameB.winfo_width()}")
+        print(f"self.frameM={self.frameM.winfo_width()}")
+        print(f"self.canvas={self.canvas.winfo_width()}")
+        #print(f"self.window={self.window}")
+        print(f"self.frame={self.frame.winfo_width()}")
+        print(f"self.scrollbar_y={self.scrollbar_y.winfo_width()}")
+
+    def guiToTable(self):
+        c,r = self.frame.grid_size()
+        print(f"guiToDico: entering  c,r={c,r}")
+        table=[]
+        for irow in range(r):
+            L=[]
+            for icol in range(c):
+                l = self.frame.grid_slaves(row=irow,column=icol)
+                if l==[]:
+                    L.append(None)
+                else:
+                    L.append(l[0])
+            table.append(L)
+        return table
+
 
     """
     Mes conventions
@@ -1105,10 +1311,10 @@ if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
     # root.geometry("600x3000")
-    v = tk.Scrollbar()
-    v.pack(side = tk.LEFT, fill = tk.Y)  
+    # v = tk.Scrollbar()
+    # v.pack(side = tk.LEFT, fill = tk.Y)  
     my=trajMaker(root,widthPhysical=800,heightPhysical=600)
-    fr = my.frame
+    # my=trajMaker(widthPhysical=800,heightPhysical=600)
     # root.mainloop()
 
 

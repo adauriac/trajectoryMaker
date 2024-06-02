@@ -13,3 +13,5 @@ Remarque on peut insérer une ligne vierge avant ou après une ligne en
 
 Quand un pop-up d'édition est activé les autres fenêtres sont
 inactives. Il faut choisir une option du menu (par ex cancel)
+
+La section *arc2* sens>0 clockwise sens<=0 anti-clockwise
