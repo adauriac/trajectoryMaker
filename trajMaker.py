@@ -1178,7 +1178,8 @@ class trajMaker():
             except:
                 ok = False
             if not ok:
-                messagebox.showerror("in strToDico",f"line {line.replace("\n","")} not OK")
+                aux = line.replace("\n","") # windows needs that !
+                messagebox.showerror("in strToDico",f"line {aux} not OK")
                 sys.exit(0)
             ans[key] = val
         return ans
