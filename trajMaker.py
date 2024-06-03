@@ -4,7 +4,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 from math import atan2,sin,cos,pi,sqrt,acos
 import sys,time
-# from PIL import Image, ImageTk
+from PIL import Image, ImageTk
 
 """
 line: "type x(1) Y(1) Z(1) X(2) Y(2) Z(2) speed data plasma"
@@ -276,7 +276,7 @@ class trajMaker():
         bgCanvas = 'grey'
         bgFrame = 'yellow'
         bgWindow = 'magenta'
-        
+        self.backgroundImageId = -1 # no image to show, else it is self.frame.canvas.
         parent.geometry(f"{largParent}x{hautParent}") # the window for the entry
         self.frameB = tk.Frame(parent) # B for Button
         self.frameM = tk.Frame(parent,width=largFrameM,height=hautFrameM-10*hautFrameS) # M for Main
@@ -392,6 +392,9 @@ class trajMaker():
     # FIN def bidon(self):
     # ################################################################################
 
+    def onDestroyTopDraw(self,event):
+        self.backgroundImageId=-1
+        
     def proccessTraj(self):
         """
         draw the trajectory OR write a file OR do it directly
@@ -407,6 +410,7 @@ class trajMaker():
             self.topDraw.destroy()
         self.topDraw = tk.Toplevel(width=self.widthCanv+10,height=self.heightCanv+100)
         self.topDraw.title("TRAJECTORY")
+        self.topDraw.bind("<Destroy>",self.onDestroyTopDraw) # so prevent hidding destroyed image !
         btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
         btn.place(x=self.topDraw.winfo_width()/2,y=20)
         labPhysicalDim = tk.Label(self.topDraw,text=f"Phyisical dimensions={self.widthPhysical,self.heightPhysical}")
@@ -417,11 +421,14 @@ class trajMaker():
         self.canvas.config(bg='ivory')
         self.canvas.place(x=5,y=55)
         
-        # L'image en BG
-        #self.image = Image.open("./wood-1866642_1280.jpg")
-        #self.background_image = ImageTk.PhotoImage(self.image)
-        #self.canvas.create_image(0, 0, anchor=tk.NW, image=self.background_image)
-
+        # Background Image
+        try:
+            self.image = Image.open("./wood-1866642_1280.jpg")
+            self.backgroundImage = ImageTk.PhotoImage(self.image)
+            self.backgroundImageId = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
+        except:
+            self.backgroundImageId = -1
+            
         e = 2 # Line at x=0 or y=0 NOT seen i e=0
         xcur = 0
         ycur = 0
@@ -647,7 +654,27 @@ class trajMaker():
         self.proccessTraj()
     # FIN def go(self):
     # ################################################################################
-            
+
+    def hideBackgroundImage(self):
+        """
+        hide the background image in the canvas if present, else do nothing
+        """
+        if self.backgroundImageId==-1:
+            return
+        self.canvas.itemconfigure(self.backgroundImageId,state="hidden")
+    # FIN def hideBackgroundImage(self)
+    # ################################################################################
+
+    def showBackgroundImage(self):
+        """
+        hide the background image in the canvas if present, else do nothing
+        """
+        if self.backgroundImageId==-1:
+            return
+        self.canvas.itemconfigure(self.backgroundImageId,state="normal")
+    # FIN def hideBackgroundImage(self)
+    # ################################################################################
+
     def delAll(self):
         """
         the line is still in the grid but all cells of the are none
@@ -1304,10 +1331,6 @@ class trajMaker():
             table.append(L)
         return table
 
-
-    """
-    Mes conventions
-    """
 if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
