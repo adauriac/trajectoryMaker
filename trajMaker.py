@@ -249,10 +249,10 @@ class trajMaker():
           "arc1":{"type":0,"xF":1,"yF":2,"xP":4,"yP":5,"speed":8,"plasma":9},          # point final point de passage (3 pts ==> OK)
           "arc2":{"type":0,"xF":1,"yF":2,"xC":4,"yC":5,"sens":6,"speed":8,"plasma":9}, # point final centre sens PAS FOPRCEMENT CONSISTENT
           "circ1":{"type":0,"xP1":1,"yP1":2,"xP2":4,"yP2":5,"speed":8,"plasma":9},     # point de passage 1  point de passage 2 (3 pts OK)
-          "circ2":{"type":0,"xC":1,"yC":2,"sens":4,"speed":8,"plasma":9},              # centre et sens
+          "circ2":{"type":0,"xC":1,"yC":2,"sens":6,"speed":8,"plasma":9},              # centre et sens
           "w":{"type":0,"waitTime":1},                                                 # waiting time
           "start":{"type":0},                                                          # start
-          "end":{"type":0}                                                            # stop  
+          "end":{"type":0,"speed":8}                                                   # end  
           }
     def __init__(self,parent=None,widthPhysical=800,heightPhysical=600,widthCanv=510, **kwargs):
         if parent==None:
@@ -446,7 +446,7 @@ class trajMaker():
                     print(f"processTraj: exception line 446 |section={section}| |ss={ss}|")
                 localDico[k]=v
             type = localDico["type"]
-            if type=="w":
+            if type=="w" or type=="start" or type=="end":
                 continue
             speed = localDico["speed"]
             plasma = localDico["plasma"]
@@ -613,6 +613,7 @@ class trajMaker():
                 xC = float(localDico["xC"]) # x center
                 yC = float(localDico["yC"]) # y center
                 R = sqrt((xcur-xC)**2 + (ycur-yC)**2)
+                sens = int(localDico["sens"]) 
                 if xC-R<0 or xC+R>self.widthPhysical or yC-R<0 or yC+R>self.heightPhysical:
                     msg=f"line {cpt} (circ2) some part of the trajectory is out of frame"
                     messagebox.showerror("fatal",msg)
@@ -638,7 +639,7 @@ class trajMaker():
         for l in range(r):
             if self.frame.grid_slaves(row=l,column=0)==[]:
                 continue
-            if not self.frame.grid_slaves(row=l,column=c-1)[0].get():
+            if not self.frame.grid_slaves(row=l,column=c-1)[0].get(): # not selected
                 continue
             w = self.frame.grid_slaves(row=l,column=0)[0]
             type = w.get()
@@ -666,7 +667,8 @@ class trajMaker():
                     except:
                         ok = False
                     if not ok:
-                        messagebox.showerror("Can't proccess",f"A wrong entry on line {l} column {k}")
+                        messagebox.showerror("Can't proccess",f"A wrong entry on line {l} column {k} value={val}")
+                        print(f"line {l} column {k} value={val} type={type} key={key}")
                         return
                 parameters += key+"="+val+" "
             self.trajDescript.append(parameters)
@@ -848,7 +850,7 @@ class trajMaker():
             self.frame.grid_slaves(row=irow,column=5)[0].insert(0,"yCenter")
             self.frame.grid_slaves(row=irow,column=6)[0].config(state="normal") # sens
             self.frame.grid_slaves(row=irow,column=6)[0].delete(0,tk.END)
-            self.frame.grid_slaves(row=irow,column=6)[0].insert(0,"Sens")
+            self.frame.grid_slaves(row=irow,column=6)[0].insert(0,"sens<>0")
         elif newType=="circ1":
             self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal") # xPassage1
             self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
@@ -869,13 +871,22 @@ class trajMaker():
             self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal") # yCenter
             self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"yCenter")
+            self.frame.grid_slaves(row=irow,column=6)[0].config(state="normal") # sens
+            self.frame.grid_slaves(row=irow,column=6)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=6)[0].insert(0,"sens<>0")
         elif newType=="w":
-            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal") # waiting time
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal")  # waiting time
             self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"t 1/10s")
             self.frame.grid_slaves(row=irow,column=8)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=irow,column=8)[0].config(state="disabled") # speed
-        elif newType=="end" or newType=="start":                               # stop or start
+        elif newType=="end":                                                      # end
+            self.frame.grid_slaves(row=irow,column=8)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=8)[0].config(state="disabled") # speed
+            self.frame.grid_slaves(row=irow,column=8)[0].config(state="normal")   # speed
+            self.frame.grid_slaves(row=irow,column=8)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=8)[0].insert(0,"Speed")
+        elif newType== "start":                                                   # start
             self.frame.grid_slaves(row=irow,column=8)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=irow,column=8)[0].config(state="disabled") # speed
         else:

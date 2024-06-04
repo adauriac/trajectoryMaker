@@ -23,3 +23,5 @@ Creation d'un nouveau type de troncon:
 
 Ameliorations possibles:
 	ne pas mettre de widget dans les cellules ne correspondant a aucun parametre 
+
+Toutes les Entry sont des ttk.Entry
