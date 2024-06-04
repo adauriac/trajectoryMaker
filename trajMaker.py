@@ -240,16 +240,19 @@ class trajMaker():
     ttk.Combobbox ttk.Entry ... ttk.Entry  jcCheckbutton tk.label jcCheckbutton
     """
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
-    implementedTypes = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2"]
+    implementedTypes = types[:] # usefull for adding new types of section
     widthCell = 6
     # le type doit etre un combobox en colonne 0 
-    Dico={"line":{"type":0,"xF":1,"yF":2,"zF":3,"speed":8,"plasma":9},        # point final
-          "ezsqx":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
-          "ezsqy":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},  # point final nb de zigzag
-          "arc1":{"type":0,"xF":1,"yF":2,"xP":4,"yP":5,"speed":8,"plasma":9}, # point final point de passage (3 pts ==> OK)
+    Dico={"line":{"type":0,"xF":1,"yF":2,"zF":3,"speed":8,"plasma":9},                 # point final
+          "ezsqx":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},           # point final nb de zigzag
+          "ezsqy":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},           # point final nb de zigzag
+          "arc1":{"type":0,"xF":1,"yF":2,"xP":4,"yP":5,"speed":8,"plasma":9},          # point final point de passage (3 pts ==> OK)
           "arc2":{"type":0,"xF":1,"yF":2,"xC":4,"yC":5,"sens":6,"speed":8,"plasma":9}, # point final centre sens PAS FOPRCEMENT CONSISTENT
-          "circ1":{"type":0,"xP1":1,"yP1":2,"xP2":4,"yP2":5,"speed":8,"plasma":9}, # point de passage 1  point de passage 2 (3 pts OK)
-          "circ2":{"type":0,"xC":1,"yC":2,"sens":4,"speed":8,"plasma":9}                                # centre et sens 
+          "circ1":{"type":0,"xP1":1,"yP1":2,"xP2":4,"yP2":5,"speed":8,"plasma":9},     # point de passage 1  point de passage 2 (3 pts OK)
+          "circ2":{"type":0,"xC":1,"yC":2,"sens":4,"speed":8,"plasma":9},              # centre et sens
+          "w":{"type":0,"waitTime":1},                                                 # waiting time
+          "start":{"type":0},                                                          # start
+          "end":{"type":0}                                                            # stop  
           }
     def __init__(self,parent=None,widthPhysical=800,heightPhysical=600,widthCanv=510, **kwargs):
         if parent==None:
@@ -257,7 +260,6 @@ class trajMaker():
             # parent.overrideredirect(True) widget indeplacable
             # prevent close window:
             # parent.protocol("WM_DELETE_WINDOW", lambda:None)
-            print("CREATION DE PARENT")
             self.parent = parent
         parent.title("Trajectory Maker")
         parent.resizable(False, False)
@@ -438,9 +440,14 @@ class trajMaker():
             y0 = ycur # debut de la section
             localDico =dict()
             for ss in section.split():
-                k,v=ss.split("=")
+                try:
+                    k,v=ss.split("=")
+                except:
+                    print(f"processTraj: exception line 446 |section={section}| |ss={ss}|")
                 localDico[k]=v
             type = localDico["type"]
+            if type=="w":
+                continue
             speed = localDico["speed"]
             plasma = localDico["plasma"]
             color = 'red' if plasma=="1" else 'green'
@@ -647,8 +654,20 @@ class trajMaker():
             for key in dico.keys():
                 k = dico[key]
                 val = self.frame.grid_slaves(row=l,column=k)[0].get()
-                if val==True:val="1"
-                if val==False: val="0"
+                if val==True:
+                    val="1"
+                elif val==False:
+                    val="0"
+                if key!="type":
+                    # Check that is it a string representing a float
+                    ok = True
+                    try:
+                        x = float(val)
+                    except:
+                        ok = False
+                    if not ok:
+                        messagebox.showerror("Can't proccess",f"A wrong entry on line {l} column {k}")
+                        return
                 parameters += key+"="+val+" "
             self.trajDescript.append(parameters)
         self.proccessTraj()
@@ -850,6 +869,15 @@ class trajMaker():
             self.frame.grid_slaves(row=irow,column=2)[0].config(state="normal") # yCenter
             self.frame.grid_slaves(row=irow,column=2)[0].delete(0,tk.END)
             self.frame.grid_slaves(row=irow,column=2)[0].insert(0,"yCenter")
+        elif newType=="w":
+            self.frame.grid_slaves(row=irow,column=1)[0].config(state="normal") # waiting time
+            self.frame.grid_slaves(row=irow,column=1)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=1)[0].insert(0,"t 1/10s")
+            self.frame.grid_slaves(row=irow,column=8)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=8)[0].config(state="disabled") # speed
+        elif newType=="end" or newType=="start":                               # stop or start
+            self.frame.grid_slaves(row=irow,column=8)[0].delete(0,tk.END)
+            self.frame.grid_slaves(row=irow,column=8)[0].config(state="disabled") # speed
         else:
             messagebox.showinfo("Show info","Not yet implemented")
     # FIN def comboboxSelect(self,event,r):
@@ -1250,6 +1278,7 @@ class trajMaker():
         """
         return the dictionnary corresponding line
         """
+        print(f"entering: lineToDico")
         c,r = self.frame.grid_size()
         if line >=r or line<0:
             return

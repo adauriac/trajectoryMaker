@@ -15,3 +15,11 @@ Quand un pop-up d'édition est activé les autres fenêtres sont
 inactives. Il faut choisir une option du menu (par ex cancel)
 
 La section *arc2* sens>0 clockwise sens<=0 anti-clockwise
+
+Creation d'un nouveau type de troncon:
+	rajouter une nouvelle entree dans Dico et Types, la nouvelle entrée sera proposée 
+	dans "comboboxSelect()" rajouter le cas à traiter
+	dans "processTraj()" traiter effectivement le cas
+
+Ameliorations possibles:
+	ne pas mettre de widget dans les cellules ne correspondant a aucun parametre 
