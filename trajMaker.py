@@ -1068,7 +1068,7 @@ class trajMaker():
             w = ttk.Entry(self.frame,width=self.widthCell)
             w.config(state="disabled")
             w.grid(row=r,column=k) # position finale du premier section
-        w = jcCheckbutton(self.frame,text="Plasma",width=self.widthCell)
+        w = jcCheckbutton(self.frame,text="Plasma",width=self.widthCell+1)
         w.set(False);
         w.grid(row=r,column=9) # plasma
         w = tk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=4,relief="solid",bg="white")
@@ -1153,6 +1153,19 @@ class trajMaker():
             ok = False
         if not ok:
             return
+        # creat a warning window
+        topWarner = tk.Toplevel()
+        topWarner.title("warning")
+        w = self.frameM.winfo_width()
+        h = self.frameM.winfo_height()
+        x = self.frameM.winfo_rootx()
+        y = self.frameM.winfo_rooty()
+        topWarner.geometry(f"{w}x{h}+{x}+{y}")
+        lab = tk.Label(topWarner,text="This operation can be long ...")
+        lab.pack()
+        topWarner.transient() # rend la fenetre modale ie plus d'interaction avec les autres
+        topWarner.grab_set() # tous les evnements sont envoyés a ta
+        topWarner.update()
         # ESSAI D'ACCELERATION DE LOAD
         self.frame.grid_propagate(False)
         self.frame.update_idletasks()
@@ -1169,6 +1182,7 @@ class trajMaker():
             self.addLine(line)
         #self.frame.grid_propagate(True)
         self.frame.after_idle(lambda : print(f"loadFile callback: n,tDeb,duree={r,tDeb,(time.time()-tDeb)}"))
+        topWarner.destroy()
         print(f"loadFile: leaving")
     # FIN def loadFile(self)
     # ################################################################################
