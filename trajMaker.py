@@ -413,10 +413,13 @@ class trajMaker():
         self.topDraw = tk.Toplevel(width=self.widthCanv+10,height=self.heightCanv+100)
         self.topDraw.title("TRAJECTORY")
         self.topDraw.bind("<Destroy>",self.onDestroyTopDraw) # so prevent hidding destroyed image !
-        btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
-        btn.place(x=self.topDraw.winfo_width()/2,y=20)
-        labPhysicalDim = tk.Label(self.topDraw,text=f"Phyisical dimensions={self.widthPhysical,self.heightPhysical}")
-        labPhysicalDim.place(x=self.topDraw.winfo_width()/2+200,y=20)
+        self.btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
+        self.btnBack = ttk.Button(self.topDraw,text="background",command=self.toggleBackgroundImage)
+        self.labPhysicalDim = tk.Label(self.topDraw,text=f"Physical dimensions={self.widthPhysical,self.heightPhysical}")
+        w = 520 # self.topDraw.winfo_width()
+        self.btn.place(x=1,y=20)
+        self.btnBack.place(x=w-85,y=20)
+        self.labPhysicalDim.place(x=w/2-100,y=20)
         convFactor = self.widthCanv/self.widthPhysical
         self.heightCan = convFactor*self.heightPhysical
         self.canvas = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv)
@@ -676,6 +679,19 @@ class trajMaker():
     # FIN def go(self):
     # ################################################################################
 
+    def toggleBackgroundImage(self):
+        """
+        toggle the background image in the canvas if present, else do nothing
+        """
+        if self.backgroundImageId==-1:
+            return
+        if self.canvas.itemconfigure(self.backgroundImageId)['state'][-1]=='hidden':
+            self.showBackgroundImage()
+        else:
+            self.hideBackgroundImage()
+    # FIN def toggleBackgroundImage(self)
+    # ################################################################################
+
     def hideBackgroundImage(self):
         """
         hide the background image in the canvas if present, else do nothing
@@ -688,12 +704,12 @@ class trajMaker():
 
     def showBackgroundImage(self):
         """
-        hide the background image in the canvas if present, else do nothing
+        show the background image in the canvas if present, else do nothing
         """
         if self.backgroundImageId==-1:
             return
         self.canvas.itemconfigure(self.backgroundImageId,state="normal")
-    # FIN def hideBackgroundImage(self)
+    # FIN def showBackgroundImage(self)
     # ################################################################################
 
     def delAll(self):
