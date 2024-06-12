@@ -265,7 +265,6 @@ class trajMaker():
         parent.resizable(False, False)
         self.parent = parent
         colorSpecialAsHelpToWork = False #True
-        withHorizScrollbar = False
         largParent,hautParent = 615,300
         largFrameM,hautFrameM = largParent,hautParent
         largCan,hautCan       = 604,300
@@ -293,16 +292,8 @@ class trajMaker():
         # creation du canvas et des scrollbars dans ce frame
         self.canvas = tk.Canvas(self.frameM,width=largCan,height=hautCan)
         self.scrollbar_y = ttk.Scrollbar(self.frameM, orient=tk.VERTICAL, command=self.canvas.yview)
-        if withHorizScrollbar:
-            self.scrollbar_x = ttk.Scrollbar(self.frameM, orient=tk.HORIZONTAL, command=self.canvas.xview)
-        # Configuration du canvas pour utiliser les scrollbars et positionnement
-        if withHorizScrollbar:
-            self.canvas.configure(yscrollcommand=self.scrollbar_y.set, xscrollcommand=self.scrollbar_x.set)
-        else:
-            self.canvas.configure(yscrollcommand=self.scrollbar_y.set)
+        self.canvas.configure(yscrollcommand=self.scrollbar_y.set)
         self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
-        if withHorizScrollbar:
-            self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)        
         # Creation d'un autre frame a l'interieur du canvas pour contenir d'autres widget: THE FRAME
         self.frame = ttk.Frame(self.canvas, width=largFrame,height=hautFrame)
