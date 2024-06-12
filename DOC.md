@@ -48,7 +48,11 @@ inactives. Il faut choisir une option du menu (par ex cancel)
 ---------------------------------------------------------------------------
 SOUS LE CAPOT
 
-Toutes les Entry sont des ttk.Entry
+ttk used: ttk.Entry, ttk.Button, ttk.Combobox
+tk used : tk.Toplevel, tk.Canvas, tk.Frame, tk.Scrollbar, tk.Label
+
+Dans le frameM il y a canvas et scrollbar_y
+
 
 Le copie/colle : on peut copier une ligne unique mise dans un
 presse-papier invisible et coller cette ligne du presse-papier **à la
