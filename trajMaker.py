@@ -292,9 +292,9 @@ class trajMaker():
             self.frameS.pack(side=tk.BOTTOM, fill=tk.X)
         # creation du canvas et des scrollbars dans ce frame
         self.canvas = tk.Canvas(self.frameM,width=largCan,height=hautCan)
-        self.scrollbar_y = tk.Scrollbar(self.frameM, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollbar_y = ttk.Scrollbar(self.frameM, orient=tk.VERTICAL, command=self.canvas.yview)
         if withHorizScrollbar:
-            self.scrollbar_x = tk.Scrollbar(self.frameM, orient=tk.HORIZONTAL, command=self.canvas.xview)
+            self.scrollbar_x = ttk.Scrollbar(self.frameM, orient=tk.HORIZONTAL, command=self.canvas.xview)
         # Configuration du canvas pour utiliser les scrollbars et positionnement
         if withHorizScrollbar:
             self.canvas.configure(yscrollcommand=self.scrollbar_y.set, xscrollcommand=self.scrollbar_x.set)
@@ -1405,7 +1405,7 @@ if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
     # root.geometry("600x3000")
-    # v = tk.Scrollbar()
+    # v = ttk.Scrollbar()
     # v.pack(side = tk.LEFT, fill = tk.Y)  
     my=trajMaker(root,widthPhysical=800,heightPhysical=600)
     # my=trajMaker(widthPhysical=800,heightPhysical=600)

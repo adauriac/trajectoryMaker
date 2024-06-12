@@ -48,9 +48,10 @@ inactives. Il faut choisir une option du menu (par ex cancel)
 ---------------------------------------------------------------------------
 SOUS LE CAPOT
 
-ttk used: tk.Frame, ttk.Entry, ttk.Button, ttk.Combobox
-tk used :  tk.Scrollbar, tk.Label
+ttk used: tk.Frame, ttk.Entry, ttk.Button, ttk.Combobox, ttk.Scrollbar
+tk used : tk.Label (because changing color is easier)
 no choice: tk.Toplevel, tk.Canvas
+
 Dans le frameM il y a canvas et scrollbar_y
 
 
