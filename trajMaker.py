@@ -280,12 +280,12 @@ class trajMaker():
         bgWindow = 'magenta'
         self.backgroundImageId = -1 # no image to show, else it is self.frame.canvas.
         parent.geometry(f"{largParent}x{hautParent}") # the window for the entry
-        self.frameB = tk.Frame(parent) # B for Button
-        self.frameM = tk.Frame(parent,width=largFrameM,height=hautFrameM-10*hautFrameS) # M for Main
+        self.frameB = ttk.Frame(parent) # B for Button
+        self.frameM = ttk.Frame(parent,width=largFrameM,height=hautFrameM-10*hautFrameS) # M for Main
         self.frameB.pack(expand=True)
         self.frameM.pack(expand=True)
         if False:   # Status Bar
-            self.frameS = tk.Frame(parent,width=largFrameS,height=hautFrameS) #S for status
+            self.frameS = ttk.Frame(parent,width=largFrameS,height=hautFrameS) #S for status
             self.status = tk.StringVar()
             self.status.set("Ready")
             self.status = tk.Label(parent, textvariable=self.status, bd=1, relief=tk.SUNKEN, anchor=tk.W)
@@ -305,7 +305,7 @@ class trajMaker():
             self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)        
         # Creation d'un autre frame a l'interieur du canvas pour contenir d'autres widget: THE FRAME
-        self.frame = tk.Frame(self.canvas, width=largFrame,height=hautFrame)
+        self.frame = ttk.Frame(self.canvas, width=largFrame,height=hautFrame)
         if colorSpecialAsHelpToWork:
             parent.config(bg='red')
             self.frameM.config(bg=bgFrameM)
