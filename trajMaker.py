@@ -264,14 +264,15 @@ class trajMaker():
         parent.title("Trajectory Maker")
         parent.resizable(False, False)
         self.parent = parent
-        colorSpecialAsHelpToWork = False #True
+        colorSpecialAsHelpToWork = True
         largParent,hautParent = 615,300
         largFrameM,hautFrameM = largParent,hautParent
         largCan,hautCan       = 604,300
         largFrame,hautFrame   = 0,0  # sans effet
-        self.numberLineMax = 1000
+        self.numberLineMax = 200
         largWind,hautWind     = largParent,19*self.numberLineMax
         largFrameS,hautFrameS = largParent,19
+        bgParent = 'red'
         bgFrameB = 'green'
         bgFrameM = 'blue'
         bgCanvas = 'grey'
@@ -297,14 +298,19 @@ class trajMaker():
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)        
         # Creation d'un autre frame a l'interieur du canvas pour contenir d'autres widget: THE FRAME
         self.frame = ttk.Frame(self.canvas, width=largFrame,height=hautFrame)
+        style = ttk.Style()
         if colorSpecialAsHelpToWork:
-            parent.config(bg='red')
-            self.frameM.config(bg=bgFrameM)
-            self.frameB.config(bg=bgFrameB)
+            parent.config(bg=bgParent)
+            style.configure("FrameM.TFrame", background=bgFrameM)
+            style.configure("FrameB.TFrame", background=bgFrameB)
+            style.configure("Frame.TFrame", background=bgFrame)
+            self.frameM.config(style="FrameM.TFrame")
+            self.frameB.config(style="FrameB.TFrame")
+            self.frame.config(style="Frame.TFrame")
             self.canvas.config(bg=bgCanvas)
-            self.frame.config(bg=bgFrame)
         self.frame.pack(expand=True)
-        self.windowId = self.canvas.create_window((0, 0), window=self.frame, anchor="nw",width=largWind,height=hautWind)
+        # To place the self.frame in the self.canvas.canvas 
+        self.windowId = self.canvas.create_window((0, 0), window=self.frame, anchor="nw",width=largWind,height=hautWind+500)
         # Mise à jour de la taille du canvas en fonction du contenu
         self.frame.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
