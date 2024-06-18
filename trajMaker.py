@@ -284,12 +284,6 @@ class trajMaker():
         self.frameM = ttk.Frame(parent,width=largFrameM,height=hautFrameM-10*hautFrameS) # M for Main
         self.frameB.pack(expand=True)
         self.frameM.pack(expand=True)
-        if False:   # Status Bar
-            self.frameS = ttk.Frame(parent,width=largFrameS,height=hautFrameS) #S for status
-            self.status = tk.StringVar()
-            self.status.set("Ready")
-            self.status = tk.Label(parent, textvariable=self.status, bd=1, relief=tk.SUNKEN, anchor=tk.W)
-            self.frameS.pack(side=tk.BOTTOM, fill=tk.X)
         # creation du canvas et des scrollbars dans ce frame
         self.canvas = tk.Canvas(self.frameM,width=largCan,height=hautCan)
         self.scrollbar_y = ttk.Scrollbar(self.frameM, orient=tk.VERTICAL, command=self.canvas.yview)
@@ -298,12 +292,12 @@ class trajMaker():
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)        
         # Creation d'un autre frame a l'interieur du canvas pour contenir d'autres widget: THE FRAME
         self.frame = ttk.Frame(self.canvas, width=largFrame,height=hautFrame)
-        style = ttk.Style()
+        self.style = ttk.Style()
         if colorSpecialAsHelpToWork:
             parent.config(bg=bgParent)
-            style.configure("FrameM.TFrame", background=bgFrameM)
-            style.configure("FrameB.TFrame", background=bgFrameB)
-            style.configure("Frame.TFrame", background=bgFrame)
+            self.style.configure("FrameM.TFrame", background=bgFrameM)
+            self.style.configure("FrameB.TFrame", background=bgFrameB)
+            self.style.configure("Frame.TFrame", background=bgFrame)
             self.frameM.config(style="FrameM.TFrame")
             self.frameB.config(style="FrameB.TFrame")
             self.frame.config(style="Frame.TFrame")
@@ -338,12 +332,12 @@ class trajMaker():
         self.widthPhysical = widthPhysical
         self.heightPhysical = heightPhysical
         # Below the entry for the physical dimensions are installed
-        labelHeight = tk.Label(self.frameB,text="Height in mm (y)")
+        labelHeight = ttk.Label(self.frameB,text="Height in mm (y)")
         self.physHeightVar = tk.StringVar()
         self.physHeightVar.set("%d"%heightPhysical)
         entryHeight = ttk.Entry(self.frameB,width=4,textvariable=self.physHeightVar)
         #
-        labelWidth = tk.Label(self.frameB,text="Width in mm (x)")
+        labelWidth = ttk.Label(self.frameB,text="Width in mm (x)")
         self.physWidthVar = tk.StringVar()
         self.physWidthVar.set("%d"%widthPhysical)
         entryWidth = ttk.Entry(self.frameB,width=4,textvariable=self.physWidthVar)
@@ -412,7 +406,7 @@ class trajMaker():
         self.topDraw.bind("<Destroy>",self.onDestroyTopDraw) # so prevent hidding destroyed image !
         self.btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
         self.btnBack = ttk.Button(self.topDraw,text="background",command=self.toggleBackgroundImage)
-        self.labPhysicalDim = tk.Label(self.topDraw,text=f"Physical dimensions={self.widthPhysical,self.heightPhysical}")
+        self.labPhysicalDim = ttk.Label(self.topDraw,text=f"Physical dimensions={self.widthPhysical,self.heightPhysical}")
         w = 520 # self.topDraw.winfo_width()
         self.btn.place(x=1,y=20)
         self.btnBack.place(x=w-85,y=20)
@@ -1050,7 +1044,7 @@ class trajMaker():
             toplevelEditLine.focus_force()
             toplevelEditLine.wait_visibility()
             toplevelEditLine.grab_set()
-            lab = tk.Label(toplevelEditLine,text="Line %d"%(line+1),width=17)
+            lab = ttk.Label(toplevelEditLine,text="Line %d"%(line+1),width=17)
             butInsBel = ttk.Button(toplevelEditLine,text="Insert line below",width=17,command=lambda :self.insertLineBelow(line,toplevelEditLine))
             butInsAbo = ttk.Button(toplevelEditLine,text="Insert line above",width=17,command=lambda :self.insertLineAbove(line,toplevelEditLine))
             butDel = ttk.Button(toplevelEditLine,text="Delete line",width=17,command=lambda :self.removeLine(line,toplevelEditLine))
@@ -1066,10 +1060,10 @@ class trajMaker():
             butCancel.grid(column=0,row=6)
         # FIN def editLine(event):
         # THE WIDGETS:
-        # ###############################################################
-        #      0          1..8          9          10         11        #
-        # ttk.Combobox 8xttk.Entry jcCheckButton tk.Label jcCheckbutton #
-        #################################################################
+        # ################################################################
+        #      0          1..8          9           10         11        #
+        # ttk.Combobox 8xttk.Entry jcCheckButton ttk.Label jcCheckbutton #
+        ##################################################################
         c,r = self.frame.grid_size()
         if r >= self.numberLineMax-1:
             messagebox.showinfo("error",f"maximumm number of line {self.numberLineMax} reached")
@@ -1084,7 +1078,7 @@ class trajMaker():
         w = jcCheckbutton(self.frame,text="Plasma",width=self.widthCell+1)
         w.set(False);
         w.grid(row=r,column=9) # plasma
-        w = tk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=4,relief="solid",bg="white")
+        w = ttk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=4,relief="solid")
         w.grid(row=r,column=10) # label
         w.bind('<Button-1>', lambda event : editLine(event,r))
         w.bind("<Enter>", lambda event : event.widget.config(bg="red"))
@@ -1174,7 +1168,7 @@ class trajMaker():
         x = self.frameM.winfo_rootx()
         y = self.frameM.winfo_rooty()
         topWarner.geometry(f"{w}x{h}+{x}+{y}")
-        lab = tk.Label(topWarner,text="This operation can be long ...")
+        lab = ttk.Label(topWarner,text="This operation can be long ...")
         lab.pack()
         topWarner.transient() # rend la fenetre modale ie plus d'interaction avec les autres
         topWarner.grab_set() # tous les evnements sont envoyés a ta
@@ -1361,7 +1355,7 @@ class trajMaker():
                 w.set(val)
             elif isinstance(w,ttk.Entry):
                 w.insert(0,val)
-            elif isinstance(w,tk.Label):
+            elif isinstance(w,ttk.Label):
                 w.insert(0,val)
             elif isinstance(w,jcCheckbutton):
                 w.set(val)
