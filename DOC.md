@@ -48,9 +48,14 @@ inactives. Il faut choisir une option du menu (par ex cancel)
 ---------------------------------------------------------------------------
 SOUS LE CAPOT
 
-ttk used: tk.Frame, ttk.Entry, ttk.Button, ttk.Combobox,
-ttk.Scrollbar, ttk.Label
-no choice: tk.Toplevel, tk.Canvas
+La classe trajMaker peut etre appelée sans parent ou avec un parent : soit tk.Tk() soit un tk.Toplevel() 
+Si elle est appelée avec un toplevel son layout DOIT etre pack()
+Si elle appelée sans parent un toplevel sera cree.
+Dans tous les app.parent sera accessible.
+
+La classe trajMaker utilise des widgets ttk dès qu'ils existent:
+(ttk.Frame, ttk.Entry, ttk.Button, ttk.Combobox, ttk.Scrollbar, ttk.Label)
+et (tk.Toplevel, tk.Canvas)
 
 Dans le frameM il y a canvas et scrollbar_y
 

@@ -14,7 +14,6 @@ line: "type x(1) Y(1) Z(1) X(2) Y(2) Z(2) speed data plasma"
 model from plasmagui (almost!):
   0   1    2    3     4    5    6   7      8     9
 type x(1) y(1) z(1) x(2) y(2) z(2) data  speed plasma
-
 there always x(1) y(1) z(1) = final point(0,1,2) and speed plasma (-2,-1)
 """
 def filterDir(x,t):
@@ -298,6 +297,10 @@ class trajMaker():
             self.style.configure("FrameM.TFrame", background=bgFrameM)
             self.style.configure("FrameB.TFrame", background=bgFrameB)
             self.style.configure("Frame.TFrame", background=bgFrame)
+            self.style.configure("red.TLabel", background="red")
+            self.style.configure("white.TLabel", background="white")
+            defColor = self.style.lookup("TLabel","background")
+            self.style.configure("default.TLabel", background=defColor)
             self.frameM.config(style="FrameM.TFrame")
             self.frameB.config(style="FrameB.TFrame")
             self.frame.config(style="Frame.TFrame")
@@ -378,11 +381,6 @@ class trajMaker():
         if False:
             self.addLine("type=ezsqy xF=400 yF=400 nZigZag=9 speed=23 plasma=0") # xf yf nzigzag speed plasma
     # FIN def __init__(self,master=None, **kwargs):
-    # ################################################################################
-
-    def bidon(self,st):
-        print(f"bidon: {st} self.frame.winfo_width={self.frame.winfo_width()}")
-    # FIN def bidon(self):
     # ################################################################################
 
     def onDestroyTopDraw(self,event):
@@ -1081,8 +1079,8 @@ class trajMaker():
         w = ttk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=4,relief="solid")
         w.grid(row=r,column=10) # label
         w.bind('<Button-1>', lambda event : editLine(event,r))
-        w.bind("<Enter>", lambda event : event.widget.config(bg="red"))
-        w.bind("<Leave>", lambda event : event.widget.config(bg="white"))
+        w.bind("<Enter>", lambda event :event.widget.config(style="red.TLabel"))
+        w.bind("<Leave>", lambda event :event.widget.config(style="default.TLabel"))
         w = jcCheckbutton(self.frame,width=0)
         w.set(True);
         w.grid(row=r,column=11) # selecteur        
@@ -1395,11 +1393,7 @@ class trajMaker():
 if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
-    # root.geometry("600x3000")
-    # v = ttk.Scrollbar()
-    # v.pack(side = tk.LEFT, fill = tk.Y)  
     my=trajMaker(root,widthPhysical=800,heightPhysical=600)
-    # my=trajMaker(widthPhysical=800,heightPhysical=600)
     # root.mainloop()
 
 
