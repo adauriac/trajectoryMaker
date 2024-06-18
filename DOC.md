@@ -64,9 +64,6 @@ de ttk.Checkbutton
 
 Flag utile pour debugger colorSpecialAsHelpToWork
 
-Dans le frameM il y a canvas et scrollbar_y
-
-
 Le copie/colle : on peut copier une ligne unique mise dans un
 presse-papier invisible et coller cette ligne du presse-papier **à la
 place** d'une ligne choisie
