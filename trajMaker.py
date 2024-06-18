@@ -263,7 +263,7 @@ class trajMaker():
         parent.title("Trajectory Maker")
         parent.resizable(False, False)
         self.parent = parent
-        colorSpecialAsHelpToWork = True
+        colorSpecialAsHelpToWork = False
         largParent,hautParent = 615,300
         largFrameM,hautFrameM = largParent,hautParent
         largCan,hautCan       = 604,300
@@ -307,7 +307,7 @@ class trajMaker():
             self.canvas.config(bg=bgCanvas)
         self.frame.pack(expand=True)
         # To place the self.frame in the self.canvas.canvas 
-        self.windowId = self.canvas.create_window((0, 0), window=self.frame, anchor="nw",width=largWind,height=hautWind+500)
+        self.windowId = self.canvas.create_window((0, 0), window=self.frame, anchor="nw",width=largWind,height=hautWind)
         # Mise à jour de la taille du canvas en fonction du contenu
         self.frame.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
@@ -1064,7 +1064,7 @@ class trajMaker():
         ##################################################################
         c,r = self.frame.grid_size()
         if r >= self.numberLineMax-1:
-            messagebox.showinfo("error",f"maximumm number of line {self.numberLineMax} reached")
+            messagebox.showerror("error",f"maximum number of line {self.numberLineMax} reached")
             return
         w = ttk.Combobox(self.frame,values=self.types,width=self.widthCell,state="readonly")
         w.bind("<<ComboboxSelected>>", lambda  event : self.comboboxSelect(event,r))
@@ -1182,7 +1182,6 @@ class trajMaker():
             # print(f"loadFile: {cpt}")
             self.frame.update_idletasks()
             if cpt>=self.numberLineMax:
-                messagebox.showerror("",f"Maximum number of lines {self.numberLineMax} reached")
                 break
             self.addLine(line)
         #self.frame.grid_propagate(True)

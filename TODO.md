@@ -1,8 +1,7 @@
-- Multi copy/paste à finir
-- ascenceur à finir 
-- mettre une image derrière le canvas
-- arc2 ne verifie pas que la trajectoire reste dans le cadre
-------------------------------------------------------------
 - rendre controlRobot modulaire
 - rendre controlGene modulaire
 ------------------------------------------------------------
+TRADUCTION
+------------------------------------------------------------
+Avoir une double representation des données : interne et gui, 
+pouvoir ici n'afficher que des lignes choisies de la representation interne.

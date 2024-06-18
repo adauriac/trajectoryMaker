@@ -30,8 +30,8 @@ est implicitement fixé par la hauteur de la zone d'entrée. La taille des
 fenêtres est fixe. 
 
 Le bouton addline ajoute une ligne à la fin.
-Le bouton delselected supprime les lignes sélectionnées (on peut préferrer
-les déselectionner seulemt qui permet de les remettre)
+Le bouton delselected supprime les lignes sélectionnées (on peut
+préferrer les déselectionner seulemt qui permet de les remettre)
 
 1) copie: On édite la ligne choisie en cliquant sur son numéro : un
 pop-up apparait, choisir "copy"
@@ -51,11 +51,18 @@ SOUS LE CAPOT
 La classe trajMaker peut etre appelée sans parent ou avec un parent : soit tk.Tk() soit un tk.Toplevel() 
 Si elle est appelée avec un toplevel son layout DOIT etre pack()
 Si elle appelée sans parent un toplevel sera cree.
-Dans tous les app.parent sera accessible.
+Dans tous les cas myApp.parent sera accessible.
 
 La classe trajMaker utilise des widgets ttk dès qu'ils existent:
-(ttk.Frame, ttk.Entry, ttk.Button, ttk.Combobox, ttk.Scrollbar, ttk.Label)
-et (tk.Toplevel, tk.Canvas)
+ttk.Frame, ttk.Entry, ttk.Button, ttk.Combobox, ttk.Scrollbar,
+ttk.Label, ttkCheckbutton (a travers jcCheckbutton))
+et tk.Toplevel, tk.Canvas.
+
+Il n'y a pas de redondance, c'est à dire que les paramètres sont dans
+le widget. C'est pourquoi j'ai introduit un jcCheckButton, qui hérite
+de ttk.Checkbutton
+
+Flag utile pour debugger colorSpecialAsHelpToWork
 
 Dans le frameM il y a canvas et scrollbar_y
 
