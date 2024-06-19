@@ -277,7 +277,7 @@ class trajMaker():
         bgCanvas = 'grey'
         bgFrame = 'yellow'
         bgWindow = 'magenta'
-        self.backgroundImageId = -1 # no image to show, else it is self.frame.canvas.
+        self.backgroundImageId = -1 # no image to show, else it is self.frame.canvasImage.
         parent.geometry(f"{largParent}x{hautParent}") # the window for the entry
         self.frameB = ttk.Frame(parent) # B for Button
         self.frameM = ttk.Frame(parent,width=largFrameM,height=hautFrameM-10*hautFrameS) # M for Main
@@ -411,15 +411,15 @@ class trajMaker():
         self.labPhysicalDim.place(x=w/2-100,y=20)
         convFactor = self.widthCanv/self.widthPhysical
         self.heightCan = convFactor*self.heightPhysical
-        self.canvas = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv)
-        self.canvas.config(bg='ivory')
-        self.canvas.place(x=5,y=55)
+        self.canvasImage = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv)
+        self.canvasImage.config(bg='ivory')
+        self.canvasImage.place(x=5,y=55)
         
         # Background Image
         try:
             self.image = Image.open("./wood-1866642_1280.jpg")
             self.backgroundImage = ImageTk.PhotoImage(self.image)
-            self.backgroundImageId = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
+            self.backgroundImageId = self.canvasImage.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
         except:
             self.backgroundImageId = -1
             
@@ -452,7 +452,7 @@ class trajMaker():
                     msg=f"line {cpt} (line) the final point is out of the frame"
                     messagebox.showerror("fatal",msg)
                     return
-                self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xF+e,convFactor*yF+e, fill=color, width=2)
+                self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xF+e,convFactor*yF+e, fill=color, width=2)
                 xcur = xF
                 ycur = yF
             elif type=="ezsqx":
@@ -469,24 +469,24 @@ class trajMaker():
                 LY = yF-ycur
                 L = LY
                 l = LX/(2.0*n) if n!=0 else L
-                self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
+                self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
                 ycur += L
                 if n==0:
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     continue
                 for i in range(n):
                     # (xcur,ycur)->(xcur+l,ycur)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     # (xcur,ycur)->(xcur,ycur-L)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur-L)+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur-L)+e, fill=color, width=w)
                     ycur -= L
                     # (xcur,ycur)->(xcur+l,ycur)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     # (xcur,ycur)->(xcur,ycur+L)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
                     ycur += L
             elif type=="ezsqy":
                 # first: a straight line         _
@@ -502,24 +502,24 @@ class trajMaker():
                 LY = yF-ycur
                 L = LX
                 l = LY/(2.0*n) if n!=0 else L
-                self.canvas.create_line(convFactor*(xcur+L)+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*ycur+e, fill=color, width=w)
+                self.canvasImage.create_line(convFactor*(xcur+L)+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*ycur+e, fill=color, width=w)
                 xcur += L
                 if n==0:
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*(ycur+l)+e,convFactor*xcur+e,convFactor*ycur+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*(ycur+l)+e,convFactor*xcur+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += l
                     continue
                 for i in range(n):
                     # (xcur,ycur)->(xcur,ycur+l)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+l)+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+l)+e, fill=color, width=w)
                     ycur += l
                     # (xcur,ycur)->(xcur-L,ycur)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur-L)+e,convFactor*ycur+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur-L)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur -= L
                     # (xcur,ycur)->(xcur,ycur+l)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+l)+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+l)+e, fill=color, width=w)
                     ycur += l
                     # (xcur,ycur)->(xcur+L,ycur)
-                    self.canvas.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+L)+e,convFactor*ycur+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+L)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += L
             elif type=="arc1": # pt final et pt passage
                 xF = float(localDico["xF"])
@@ -529,13 +529,13 @@ class trajMaker():
                 xp = float(localDico["xP"]) # point de passage
                 yp = float(localDico["yP"]) # point de passage
                 status,a,b,c,d,start,extent = create_arcParameter(xd,yd,xF,yF,xp,yp)
-                self.canvas.create_arc(convFactor*a+e,convFactor*b+e,convFactor*c+e,convFactor*d+e,start=start,extent=extent,style=tk.ARC,outline=color,width=w)
+                self.canvasImage.create_arc(convFactor*a+e,convFactor*b+e,convFactor*c+e,convFactor*d+e,start=start,extent=extent,style=tk.ARC,outline=color,width=w)
                 if status!='ok':
                     messagebox.showinfo("information",status)
                 # here test if the trajectory always in the frame
                 xmin,ymin,xmax,ymax = rectangleExinscritEPS(xd, yd, xp, yp, xF, yF)
                 if True: #show the rectangle exinscrit
-                    self.canvas.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
+                    self.canvasImage.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 if xmin<0 or xmax>self.widthPhysical or ymax<0 or ymax>self.heightPhysical:
                     msg=f"line {cpt} (arc1) a part of the trajectory is out of the frame"
                     messagebox.showerror("fatal",msg)
@@ -569,15 +569,15 @@ class trajMaker():
                 ad = AdR*180/pi
                 af = AfR*180/pi
                 extent = (ad-af) if sens>0 else (ad-af)-360
-                # print(f"self.canvas.create_arc({xc-R,yc-R,xc+R,yc+R},start={-ad},extent={extent},style={tk.ARC})") bidon
-                self.canvas.create_arc(convFactor*(xc-R)+e,convFactor*(yc-R)+e,convFactor*(xc+R)+e,convFactor*(yc+R)+e,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
+                # print(f"self.canvasImage.create_arc({xc-R,yc-R,xc+R,yc+R},start={-ad},extent={extent},style={tk.ARC})") bidon
+                self.canvasImage.create_arc(convFactor*(xc-R)+e,convFactor*(yc-R)+e,convFactor*(xc+R)+e,convFactor*(yc+R)+e,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
                 # if status!='ok':                    messagebox.showinfo("information",status)
                 if False: # voir pourquoi ca ne marche pas
                     X,u,v= rectangleExinscritCES(xc, yc, xd, yd, xF, yF, sens)
                     xmin,ymin,xmax,ymax = X
                     print(f"u,v={u,v}")
-                    self.canvas.create_oval(convFactor*(u)-2+e,convFactor*(v)-2+e,convFactor*(u)+2+e,convFactor*(v)+2+e)# visualieation du pt de passage
-                    self.canvas.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
+                    self.canvasImage.create_oval(convFactor*(u)-2+e,convFactor*(v)-2+e,convFactor*(u)+2+e,convFactor*(v)+2+e)# visualieation du pt de passage
+                    self.canvasImage.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 xcur = xF
                 ycur = yF
             elif type=="circ1": # pt de passage 1 pt de passage 2
@@ -596,7 +596,7 @@ class trajMaker():
                     print(f"proccessTraj: circ1  stat,xC,yC,R={ stat,xC,yC,R}")
                     messagebox.showerror("fatal",msg)
                     return
-                self.canvas.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
+                self.canvasImage.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
                 xF = xcur
                 yF = ycur
             elif type=="circ2": #  centre et sens
@@ -610,7 +610,7 @@ class trajMaker():
                     msg=f"line {cpt} (circ2) some part of the trajectory is out of frame"
                     messagebox.showerror("fatal",msg)
                     return
-                self.canvas.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
+                self.canvasImage.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
                 xF = xd # closed circle
                 yF = yd # closed circle
             else:
@@ -674,7 +674,7 @@ class trajMaker():
         """
         if self.backgroundImageId==-1:
             return
-        if self.canvas.itemconfigure(self.backgroundImageId)['state'][-1]=='hidden':
+        if self.canvasImage.itemconfigure(self.backgroundImageId)['state'][-1]=='hidden':
             self.showBackgroundImage()
         else:
             self.hideBackgroundImage()
@@ -687,7 +687,7 @@ class trajMaker():
         """
         if self.backgroundImageId==-1:
             return
-        self.canvas.itemconfigure(self.backgroundImageId,state="hidden")
+        self.canvasImage.itemconfigure(self.backgroundImageId,state="hidden")
     # FIN def hideBackgroundImage(self)
     # ################################################################################
 
@@ -697,7 +697,7 @@ class trajMaker():
         """
         if self.backgroundImageId==-1:
             return
-        self.canvas.itemconfigure(self.backgroundImageId,state="normal")
+        self.canvasImage.itemconfigure(self.backgroundImageId,state="normal")
     # FIN def showBackgroundImage(self)
     # ################################################################################
 
