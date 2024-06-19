@@ -404,7 +404,9 @@ class trajMaker():
         self.topDraw.bind("<Destroy>",self.onDestroyTopDraw) # so prevent hidding destroyed image !
         self.btn = ttk.Button(self.topDraw,text="save to file",command=self.saveToFile)
         self.btnBack = ttk.Button(self.topDraw,text="background",command=self.toggleBackgroundImage)
-        self.labPhysicalDim = ttk.Label(self.topDraw,text=f"Physical dimensions={self.widthPhysical,self.heightPhysical}")
+        # label with physical dim and mouse position
+        labelContent = f"Physical dimensions={self.widthPhysical,self.heightPhysical}"
+        self.labPhysicalDim = ttk.Label(self.topDraw,text=labelContent)
         w = 520 # self.topDraw.winfo_width()
         self.btn.place(x=1,y=20)
         self.btnBack.place(x=w-85,y=20)
@@ -414,7 +416,7 @@ class trajMaker():
         self.canvasImage = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv)
         self.canvasImage.config(bg='ivory')
         self.canvasImage.place(x=5,y=55)
-        
+        self.canvasImage.bind("<Motion>", lambda event: self.labPhysicalDim.configure(text=labelContent + f" {int((event.x)/convFactor),int((event.y)/convFactor)}"))
         # Background Image
         try:
             self.image = Image.open("./wood-1866642_1280.jpg")
@@ -423,7 +425,7 @@ class trajMaker():
         except:
             self.backgroundImageId = -1
             
-        e = 2 # Line at x=0 or y=0 NOT seen i e=0
+        e = 2 # Line at x=0 or y=0 NOT seen if e=0
         xcur = 0
         ycur = 0
         for cpt,section in enumerate(self.trajDescript):
@@ -534,7 +536,7 @@ class trajMaker():
                     messagebox.showinfo("information",status)
                 # here test if the trajectory always in the frame
                 xmin,ymin,xmax,ymax = rectangleExinscritEPS(xd, yd, xp, yp, xF, yF)
-                if True: #show the rectangle exinscrit
+                if False: #show the rectangle exinscrit
                     self.canvasImage.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 if xmin<0 or xmax>self.widthPhysical or ymax<0 or ymax>self.heightPhysical:
                     msg=f"line {cpt} (arc1) a part of the trajectory is out of the frame"
