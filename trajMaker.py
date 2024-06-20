@@ -348,7 +348,7 @@ class trajMaker():
         bSAll = ttk.Button(self.frameB,text="Select all",command=self.selectAll)
         bSNone = ttk.Button(self.frameB,text="Select none",command=self.deselectAll)
         bSave = ttk.Button(self.frameB,text="Show / Save",command=self.go)
-        bLoad = ttk.Button(self.frameB,text="Load",command=self.loadFile)
+        bLoad = ttk.Button(self.frameB,text="Load",command=lambda : self.loadFile(''))
         bdel.grid(row=1,column=0)
         badd.grid(row=1,column=1)
         bSAll.grid(row=1,column=2)
@@ -419,17 +419,14 @@ class trajMaker():
         self.canvasImage.bind("<Motion>", lambda event: self.labPhysicalDim.configure(text=labelContent + f" {int((event.x)/convFactor),int((event.y)/convFactor)}"))
         # Background Image
         if withPil:
-            print(f"proccess: withPil is True") # bidon
-            print(f"proccess: self.backgroundImageName={self.backgroundImageName}")
             try:
-                self.image = Image.open(self.backgroundImageName) # "./wood-1866642_1280.jpg")
+                self.image = Image.open(self.backgroundImageName)
                 self.backgroundImage = ImageTk.PhotoImage(self.image)
                 self.backgroundImageId = self.canvasImage.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
             except :
                 self.backgroundImageId = -1
                 self.btnBack["state"] = tk.DISABLED
         else:
-            print(f"proccess: withPil is False") # bidon
             self.btnBack["state"] = tk.DISABLED
             
         e = 2 # Line at x=0 or y=0 NOT seen if e=0
@@ -694,6 +691,7 @@ class trajMaker():
         """
         hide the background image in the canvas if present, else do nothing
         """
+        # print(f"hideBackgroundImage: entering self.backgroundImageId={self.backgroundImageId}")
         if self.backgroundImageId==-1:
             return
         self.canvasImage.itemconfigure(self.backgroundImageId,state="hidden")
@@ -800,8 +798,7 @@ class trajMaker():
         called by the combobox of row=irow and column=0 
         """
         c,r=self.frame.grid_size()
-        print(f"comboSelect: entering  c,r={c,r}")
-        print(f"in comboSelect {self.frame.grid_slaves(row=r,column=0)}")
+        #print(f"comboSelect: entering  c,r={c,r}")
         w = self.frame.grid_slaves(row=irow,column=0)[0]
         newType = w.get()
         # reset common for all type
@@ -1127,21 +1124,27 @@ class trajMaker():
     # FIN def renumber(self):
     # ################################################################################
     
-    def loadFile(self):
+    def loadFile(self,name=""):
         """
         load the choosen file, update the GUI accordingly
         """
         c,r = self.frame.grid_size()
         # print(f"loadFile: entering  c,r={c,r}")
         # tDeb= time.time()
-        dataFile = filedialog.askopenfile()
+        if name=="":
+            dataFile = filedialog.askopenfile()
+        else:
+            try:
+                dataFile = open(name,"r")
+            except:
+                dataFile = None
         if dataFile is None:
             return
         try :
             lines =dataFile.readlines()
             ok = True
         except:
-            messagebox.showerror("Error","Could not open the file {fileName} for reading")
+            messagebox.showerror("Error",f"Could not open the file {dataFile} for reading")
             ok = False
         if not ok:
             return
@@ -1166,7 +1169,6 @@ class trajMaker():
         for w in self.frame.grid_slaves():
             w.destroy()
         for cpt,line in enumerate(lines):
-            # print(f"loadFile: {cpt}")
             self.frame.update_idletasks()
             if cpt>=self.numberLineMax:
                 break
@@ -1182,7 +1184,7 @@ class trajMaker():
         Save with the format imposed by plasmagui
         """
         c,r = self.frame.grid_size()
-        print(f"entering saveToFile c,r={c,r}")
+        print(f"saveToFile: entering c,r={c,r}")
         fileName = filedialog.asksaveasfilename()
         if fileName=='':
             return # since "cancel" has been used
@@ -1266,7 +1268,7 @@ class trajMaker():
         """
         return the dictionnary corresponding line
         """
-        print(f"entering: lineToDico")
+        # print(f"lineToDico: entering")
         c,r = self.frame.grid_size()
         if line >=r or line<0:
             return
@@ -1352,6 +1354,16 @@ if __name__=='__main__':
     root = tk.Tk()
     root.title("ROOT")
     my=trajMaker(root,widthPhysical=800,heightPhysical=600)
+    if 'test' in sys.argv:
+        import os
+        fichiers = os.listdir("examples")
+        for f in fichiers:
+            print(f)
+            my.loadFile("examples/%s"%f)
+            my.go()
+            my.backgroundImageId = 1
+            my.hideBackgroundImage()
+            input("?")
     # root.mainloop()
 
 
