@@ -4,7 +4,11 @@ from tkinter import messagebox
 from tkinter import filedialog
 from math import atan2,sin,cos,pi,sqrt,acos
 import sys,time
-from PIL import Image, ImageTk
+try:
+    from PIL import Image, ImageTk
+    withPil = True
+except:
+    withPil = False
 
 """
 line: "type x(1) Y(1) Z(1) X(2) Y(2) Z(2) speed data plasma"
@@ -170,13 +174,10 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     if Ad<0:Ad += 2*pi
     if Af<0:Af += 2*pi
     if Ap<0:Ap += 2*pi
-    # print(f"create_arcParameter: les 3 pts: {xc+R*cos(Ad),yc+R*sin(Ad)},{xc+R*cos(Af),yc+R*sin(Af)},{xc+R*cos(Ap),yc+R*sin(Ap)}")
     # swtich to degree for tkinter
     ad = Ad*180/pi
     af = Af*180/pi
     ap = Ap*180/pi
-    # print(f"create_arcParameter: en rd Ad,Af,Ap={Ad,Af,Ap}") # bidon
-    # print(f"create_arcParameter: en dg ad,af,ap={ad,af,ap}") # bidon
     # here the 3 angles are in Degree on [0,360[ 
     type=-1
     if ad<=ap and ap<af:   #dpf
@@ -253,6 +254,7 @@ class trajMaker():
           "start":{"type":0},                                                          # start
           "end":{"type":0,"speed":8}                                                   # end  
           }
+    backgroundImage = "./backgroundImage.jpg"
     def __init__(self,parent=None,widthPhysical=800,heightPhysical=600,widthCanv=510, **kwargs):
         if parent==None:
             parent = tk.Toplevel()
@@ -322,13 +324,6 @@ class trajMaker():
             # print("on_canvas_resize: inter")
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
         self.canvas.bind("<Configure>", on_canvas_resize)
-        #canvas.bind("<Configure>", on_canvas_resize)       
-        # Fonction pour redimensionner le canvas et mettre à jour la région de défilement
-        # def on_resize(event):
-        #     on_canvas_resize(event)
-        #     print(f"Entering on_resize {event.width,event.height}")
-        #     self.canvas.config(self.scrollregion=self.canvas.bbox("all"))
-        # Liaison de l'événement de redimensionnement pour mettre à jour la région de défilement
         self.arc2Fake = 1
         self.widthCanv = widthCanv  
         self.heightCanv = heightPhysical/widthPhysical * widthCanv
@@ -391,7 +386,7 @@ class trajMaker():
         draw the trajectory OR write a file OR do it directly
         section : a string="type finalX finalY finale par_1 ... par_n speed plasma"
         """
-        #print(f"entering proccesTraj: {self.trajDescript}")
+        # print(f"proccesTraj: entering {self.trajDescript}")
         self.heightPhysical = int(self.physHeightVar.get())
         self.widthPhysical = int(self.physWidthVar.get())
         self.heightCanv = round(self.heightPhysical/self.widthPhysical * self.widthCanv)
@@ -419,12 +414,16 @@ class trajMaker():
         self.canvasImage.place(x=5,y=55)
         self.canvasImage.bind("<Motion>", lambda event: self.labPhysicalDim.configure(text=labelContent + f" {int((event.x)/convFactor),int((event.y)/convFactor)}"))
         # Background Image
-        try:
-            self.image = Image.open("./wood-1866642_1280.jpg")
-            self.backgroundImage = ImageTk.PhotoImage(self.image)
-            self.backgroundImageId = self.canvasImage.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
-        except:
-            self.backgroundImageId = -1
+        if withPil:
+            try:
+                self.image = Image.open(self.backgroundImage) # "./wood-1866642_1280.jpg")
+                self.backgroundImage = ImageTk.PhotoImage(self.image)
+                self.backgroundImageId = self.canvasImage.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
+            except:
+                self.backgroundImageId = -1
+                self.btnBack["state"] = tk.DISABLED
+        else:
+            self.btnBack["state"] = tk.DISABLED
             
         e = 2 # Line at x=0 or y=0 NOT seen if e=0
         xcur = 0
