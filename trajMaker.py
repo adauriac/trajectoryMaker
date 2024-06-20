@@ -254,18 +254,14 @@ class trajMaker():
           "start":{"type":0},                                                          # start
           "end":{"type":0,"speed":8}                                                   # end  
           }
-    backgroundImage = "./backgroundImage.jpg"
     def __init__(self,parent=None,widthPhysical=800,heightPhysical=600,widthCanv=510, **kwargs):
-        if parent==None:
-            parent = tk.Toplevel()
-            # parent.overrideredirect(True) widget indeplacable
-            # prevent close window:
-            # parent.protocol("WM_DELETE_WINDOW", lambda:None)
-            self.parent = parent
-        parent.title("Trajectory Maker")
-        parent.resizable(False, False)
-        self.parent = parent
+        ##########################################################
+        #                      PARAMETERS                        #
+        ##########################################################
         colorSpecialAsHelpToWork = False
+        self.arc2Fake = 1    # Ycenter computed not read in the GUI
+        self.backgroundImageName = "./backgroundImage.jpg"
+        closable = True # False is usefull sometimes to keep track of what happens 
         largParent,hautParent = 615,300
         largFrameM,hautFrameM = largParent,hautParent
         largCan,hautCan       = 604,300
@@ -279,7 +275,17 @@ class trajMaker():
         bgCanvas = 'grey'
         bgFrame = 'yellow'
         bgWindow = 'magenta'
-        self.backgroundImageId = -1 # no image to show, else it is self.frame.canvasImage.
+        ##########################################################
+        #               END OF PARAMETERS                        #
+        ##########################################################
+        if parent==None:
+            parent = tk.Toplevel()
+        if not closable:
+            parent.protocol("WM_DELETE_WINDOW", lambda:None) # prevent close window:
+        parent.title("Trajectory Maker")
+        parent.resizable(False, False)
+        self.parent = parent
+        self.backgroundImageId = -1 # no image to show yet
         parent.geometry(f"{largParent}x{hautParent}") # the window for the entry
         self.frameB = ttk.Frame(parent) # B for Button
         self.frameM = ttk.Frame(parent,width=largFrameM,height=hautFrameM-10*hautFrameS) # M for Main
@@ -297,7 +303,7 @@ class trajMaker():
         self.style.configure("red.TLabel", background="red")
         defColor = self.style.lookup("TLabel","background")
         self.style.configure("default.TLabel", background=defColor)
-        if colorSpecialAsHelpToWork:
+        if colorSpecialAsHelpToWork: # positionning helper
             parent.config(bg=bgParent)
             self.style.configure("FrameM.TFrame", background=bgFrameM)
             self.style.configure("FrameB.TFrame", background=bgFrameB)
@@ -310,21 +316,18 @@ class trajMaker():
         self.frame.pack(expand=True)
         # To place the self.frame in the self.canvas.canvas 
         self.windowId = self.canvas.create_window((0, 0), window=self.frame, anchor="nw",width=largWind,height=hautWind)
-        # Mise à jour de la taille du canvas en fonction du contenu
+        # Mise a jour de la taille du canvas en fonction du contenu
         self.frame.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
         def on_canvas_resize(event):
-            # print(f"\n\nEntering on_canvas_resize event.width,event.height={event.width,event.height}")
+            # print(f"on_canvas_resize: entering event.width,event.height={event.width,event.height}")
             canvas_width = self.frameM.winfo_width() #event.width
             canvas_height = self.frameM.winfo_height() #event.height
-            # print(f"on_canvas_resize: canvas_width,canvas_height={canvas_width,canvas_height}")
-            #self.canvas.itemconfig(self.canvas, width=canvas_width, height=canvas_height)
             self.canvas.config( width=canvas_width, height=canvas_height)
-            # print("on_canvas_resize: inter")
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
+            
         self.canvas.bind("<Configure>", on_canvas_resize)
-        self.arc2Fake = 1
         self.widthCanv = widthCanv  
         self.heightCanv = heightPhysical/widthPhysical * widthCanv
         self.widthPhysical = widthPhysical
@@ -358,7 +361,8 @@ class trajMaker():
         entryHeight.grid(row=0,column=3,sticky='w')
 
         self.topDraw = 0
-        self.copyed = [] # copyied line as dictionnary to be pasted if asked
+        self.copyed = [] # copyed line as dictionnary to be pasted if asked
+        # below some initial sections
         if True:
             self.addLine("type=line xF=100 yF=100 zF=0 speed=5 plasma=1")
         if False:
@@ -415,14 +419,17 @@ class trajMaker():
         self.canvasImage.bind("<Motion>", lambda event: self.labPhysicalDim.configure(text=labelContent + f" {int((event.x)/convFactor),int((event.y)/convFactor)}"))
         # Background Image
         if withPil:
+            print(f"proccess: withPil is True") # bidon
+            print(f"proccess: self.backgroundImageName={self.backgroundImageName}")
             try:
-                self.image = Image.open(self.backgroundImage) # "./wood-1866642_1280.jpg")
+                self.image = Image.open(self.backgroundImageName) # "./wood-1866642_1280.jpg")
                 self.backgroundImage = ImageTk.PhotoImage(self.image)
                 self.backgroundImageId = self.canvasImage.create_image(0, 0, anchor=tk.NW, image=self.backgroundImage)
-            except:
+            except :
                 self.backgroundImageId = -1
                 self.btnBack["state"] = tk.DISABLED
         else:
+            print(f"proccess: withPil is False") # bidon
             self.btnBack["state"] = tk.DISABLED
             
         e = 2 # Line at x=0 or y=0 NOT seen if e=0
@@ -1147,7 +1154,7 @@ class trajMaker():
         copy line l0 into line l1 which is therefore lost
         """
         c,r = self.frame.grid_size()
-        print(f"loadFile: entering  c,r={c,r}")
+        # print(f"loadFile: entering  c,r={c,r}")
         tDeb= time.time()
         dataFile = filedialog.askopenfile()
         if dataFile is None:
@@ -1187,9 +1194,9 @@ class trajMaker():
                 break
             self.addLine(line)
         #self.frame.grid_propagate(True)
-        self.frame.after_idle(lambda : print(f"loadFile callback: n,tDeb,duree={r,tDeb,(time.time()-tDeb)}"))
+        # self.frame.after_idle(lambda : print(f"loadFile callback: n,tDeb,duree={r,tDeb,(time.time()-tDeb)}"))
         topWarner.destroy()
-        print(f"loadFile: leaving")
+        # print(f"loadFile: leaving")
     # FIN def loadFile(self)
     # ################################################################################
 
@@ -1198,7 +1205,7 @@ class trajMaker():
         copy line l0 into line l1 which is therefore lost
         """
         c,r = self.frame.grid_size()
-        print(f"loadFileToTable: entering  c,r={c,r}")
+        # print(f"loadFileToTable: entering  c,r={c,r}")
         dataFile = filedialog.askopenfile()
         if dataFile is None:
             return
@@ -1216,7 +1223,7 @@ class trajMaker():
             ls = line.split()
             for i in ls:
                 key,val=i.split("=")
-        print(f"loadFileToTable: leaving")
+        # print(f"loadFileToTable: leaving")
     # FIN def loadFileToTable(self)
     # ################################################################################   
     
