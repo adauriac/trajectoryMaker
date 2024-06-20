@@ -1100,29 +1100,7 @@ class trajMaker():
         dico = self.strToDico(line)
         self.dicoToLine(r,dico)
         return
-        # ancienne version
-        # paramDico={}
-        # for item in line.split():
-        #     k,v=item.split("=")
-        #     paramDico[k] = v
-        # type = paramDico["type"]
-        # # ici type est OK et paramDico contient les parametres
-        # ok = self.Dico[type].keys() == paramDico.keys()
-        # if not ok :
-        #     messagebox.showerror("","incompatibilite dans addLine") # bidon
-        #     print(f"addLine: Dico {self.Dico[type].keys()} paramDico {paramDico.keys()}")
-        #     return
-        # # here a correct type is to be used
-        # for key in paramDico.keys():
-        #    val = (paramDico[key])
-        #    col = self.Dico[type][key]
-        #    # print(f"{key} je mets {val} en {col}")
-        #    w = self.frame.grid_slaves(row=r,column=col)[0]
-        #    if w.__class__!= jcCheckbutton:
-        #         w.config(state="normal")
-        #         w.insert(0,val)
-        # return
-     # FIN def addLine(self,line=""):
+    # FIN def addLine(self,line=""):
     # ################################################################################        
 
     def xchangeWidgets(self,column0=0,row0=0,column1=1,row1=1):
@@ -1151,11 +1129,11 @@ class trajMaker():
     
     def loadFile(self):
         """
-        copy line l0 into line l1 which is therefore lost
+        load the choosen file, update the GUI accordingly
         """
         c,r = self.frame.grid_size()
         # print(f"loadFile: entering  c,r={c,r}")
-        tDeb= time.time()
+        # tDeb= time.time()
         dataFile = filedialog.askopenfile()
         if dataFile is None:
             return
@@ -1193,39 +1171,11 @@ class trajMaker():
             if cpt>=self.numberLineMax:
                 break
             self.addLine(line)
-        #self.frame.grid_propagate(True)
         # self.frame.after_idle(lambda : print(f"loadFile callback: n,tDeb,duree={r,tDeb,(time.time()-tDeb)}"))
         topWarner.destroy()
         # print(f"loadFile: leaving")
     # FIN def loadFile(self)
     # ################################################################################
-
-    def loadFileToTable(self):
-        """
-        copy line l0 into line l1 which is therefore lost
-        """
-        c,r = self.frame.grid_size()
-        # print(f"loadFileToTable: entering  c,r={c,r}")
-        dataFile = filedialog.askopenfile()
-        if dataFile is None:
-            return
-        try :
-            lines =dataFile.readlines()
-            ok = True
-        except:
-            messagebox.showerror("Error","Could not open the file {fileName} for reading")
-            ok = False
-        if not ok:
-            return
-        # update the table
-        self.table=[]
-        for cpt,line in enumerate(lines):
-            ls = line.split()
-            for i in ls:
-                key,val=i.split("=")
-        # print(f"loadFileToTable: leaving")
-    # FIN def loadFileToTable(self)
-    # ################################################################################   
     
     def saveToFile(self):
         """
