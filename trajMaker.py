@@ -895,7 +895,7 @@ class trajMaker():
         if line<0 or line>=r:
             toplevelEditLine.destroy()
             return
-        print(f"Entering insertLineBelow duplique decale vers le bas les lignes {line} .. derniere ")
+        #print(f"insertLineBelow: entering duplique decale vers le bas les lignes {line} .. derniere ")
         c,r = self.frame.size()
         self.addLine()
         if line==r-1:
@@ -903,9 +903,7 @@ class trajMaker():
             return           
         # duplication des combobox de choix de type column=0
         for irow in range(r-1,line,-1):
-            print(f"insertLineBelow: irow={irow}")
             typeMy = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            print(f"insertLineBelow:typeMy={typeMy}")
             self.frame.grid_slaves(row=irow+1,column=0)[0].set(typeMy)
             self.frame.grid_slaves(row=irow+1,column=0)[0].config(state="enbled")
         self.frame.grid_slaves(row=line+1,column=0)[0].set("")
@@ -919,7 +917,6 @@ class trajMaker():
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].config(state="enabled")
                 val = self.frame.grid_slaves(row=irow,column=icol)[0].get()
                 val2 = self.frame.grid_slaves(row=irow+1,column=icol)[0].get()
-                print(f"moving row {irow} with {val} to {irow+1} with {val2}")
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].delete(0,tk.END)
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].insert(0,val)
             self.frame.grid_slaves(row=line+1,column=icol)[0].delete(0,tk.END)
@@ -938,7 +935,7 @@ class trajMaker():
         if line<0 or line>=r:
             toplevelEditLine.destroy()
             return
-        print("duplique decale vers le bas les lignes {line} .. derniere ")
+        # print("insertLineAbove: enteringduplique decale vers le bas les lignes {line} .. derniere ")
         c,r = self.frame.size()
         self.addLine()
         # duplication des combobox de choix de typeMy column=0
@@ -957,7 +954,6 @@ class trajMaker():
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].config(state="enabled")
                 val = self.frame.grid_slaves(row=irow,column=icol)[0].get()
                 val2 = self.frame.grid_slaves(row=irow+1,column=icol)[0].get()
-                print(f"moving row {irow} with {val} to {irow+1} with {val2}")
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].delete(0,tk.END)
                 self.frame.grid_slaves(row=irow+1,column=icol)[0].insert(0,val)
             self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
@@ -968,15 +964,6 @@ class trajMaker():
         # FIN def insertLineAbove(self,line,toplevelEditLine):
     # ################################################################################
     
-    # def removeLine(self,line,toplevelEditLine):
-    #     print(f"removeLine: entering with {line} {toplevelEditLine}")
-    #     for icol in range(11):
-    #         self.frame.grid_slaves(row=line,column=icol)[0].grid_remove()
-    #     toplevelEditLine.destroy()
-    #     self.renumber()
-    # FIN def removeLine(self,line,toplevelEditLine)
-    # ################################################################################
-
     def delLine(self,line,toplevelEditLine):
         """
         all cells of line are destroy (ie contains []),
@@ -1044,7 +1031,7 @@ class trajMaker():
             # print(f"je ferme {event}")
             return
         def editLine(event,line):
-            print("entering editLine ",line)
+            # print(f"editLine: entering {line}")
             toplevelEditLine = tk.Toplevel()
             toplevelEditLine.title("Edit")
             toplevelEditLine.protocol("WM_DELETE_WINDOW",close )
@@ -1247,27 +1234,6 @@ class trajMaker():
         return ans
     # FIN def strToDico(self,line)
     # ################################################################################
-    
-    def insertSelectedLineInPlace(self,line):
-        """
-        replace the single "line" by the list of lines of the selected lines       
-        """
-        c,r = self.frame.grid_size()
-        print(f"insertSelectedLineInPlace: entering  c,r={c,r}")
-        for irow in range(r):
-            if  not self.frame.grid_slaves(row=irow,column=11)[0].get():
-                continue
-            # a line to insert : make the corresponding dictionnary
-            paramDico={}
-            typeMy = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            localDico = self.Dico[typeMy]
-            for key in localDico.keys():
-                col = localDico[key]
-                val = self.frame.grid_slaves(row=irow,column=col)[0].get()
-                paramDico[key] = val
-            print(f"{paramDico}")
-    # FIN def insertSelectedLineInPlace(self)
-    # ################################################################################
 
     def lineToDico(self,line):
         """
@@ -1339,6 +1305,8 @@ class trajMaker():
         #print(f"self.window={self.window}")
         print(f"self.frame={self.frame.winfo_width()}")
         print(f"self.scrollbar_y={self.scrollbar_y.winfo_width()}")
+    # FIN def dim(self)
+    # ################################################################################
 
     def guiToTable(self):
         c,r = self.frame.grid_size()
@@ -1354,9 +1322,8 @@ class trajMaker():
                     L.append(l[0])
             table.append(L)
         return table
-
-def cucu():
-    return
+    # FIN def guiToTable(self)
+    # ################################################################################
 
 if __name__=='__main__':
     root = tk.Tk()
