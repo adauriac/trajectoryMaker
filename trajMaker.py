@@ -24,7 +24,7 @@ def filterDir(x,t):
     print(list(filter(lambda x:x.find(t)!=-1,dir(x))))
 
 def ORDONNE(a,b,c,d):
-    return (((a)<=(b)) and ((b)<=(c)) and ((c)<=(d)))
+    return (a <= b) and (b <= c) and (c <= d)
 
 def isOnArc( te,  ts,  tp,  t):
     """
@@ -224,7 +224,7 @@ class jcCheckbutton(ttk.Checkbutton):
 ######################################################################################
 #                                CLASS MATRIX                                        #
 ######################################################################################
-class trajMaker():
+class trajMaker:
     """
     The "trajMaker" allowing to draw a trajectory.
     A gui to create  trajectory as a list of section.
@@ -417,7 +417,7 @@ class trajMaker():
         self.canvasImage = tk.Canvas(self.topDraw,width=self.widthCanv,height=self.heightCanv)
         self.canvasImage.config(bg='ivory')
         self.canvasImage.place(x=5,y=55)
-        self.canvasImage.bind("<Motion>", lambda event: self.labPhysicalDim.configure(text=labelContent + f" {int((event.x)/convFactor),int((event.y)/convFactor)}"))
+        self.canvasImage.bind("<Motion>", lambda event: self.labPhysicalDim.configure(text=labelContent + f" {int(event.x / convFactor),int(event.y / convFactor)}"))
         # Background Image
         if withPil:
             try:
@@ -583,7 +583,7 @@ class trajMaker():
                     X,u,v= rectangleExinscritCES(xc, yc, xd, yd, xF, yF, sens)
                     xmin,ymin,xmax,ymax = X
                     print(f"u,v={u,v}")
-                    self.canvasImage.create_oval(convFactor*(u)-2+e,convFactor*(v)-2+e,convFactor*(u)+2+e,convFactor*(v)+2+e)# visualieation du pt de passage
+                    self.canvasImage.create_oval(convFactor * u - 2 + e, convFactor * v - 2 + e, convFactor * u + 2 + e, convFactor * v + 2 + e)# visualieation du pt de passage
                     self.canvasImage.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 xcur = xF
                 ycur = yF
@@ -1339,6 +1339,7 @@ if __name__=='__main__':
             my.backgroundImageId = 1
             my.hideBackgroundImage()
             input("?")
-    # root.mainloop()
+    if 'run' in sys.argv:
+        root.mainloop()
 
 
