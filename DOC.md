@@ -72,6 +72,8 @@ toplevel sera cree. Dans tous les cas myApp.parent sera accessible.
 Au début du constructeur de la classe trajMaker.trajMaker il y a un
 ensemble de paramètres que l'on peut modifier pour debugger plus
 facilement ou pour changer l'aspect du GUI. Leurs noms sont explicites.
+Par exemple le flag *colorSpecialAsHelpToWork* peut être mis True pour
+aider à ajuster les fenêtres.
 
 La classe trajMaker utilise des widgets ttk dès qu'ils existent:
 ttk.Frame, ttk.Entry, ttk.Button, ttk.Combobox, ttk.Scrollbar,
@@ -83,7 +85,11 @@ stockés directement dans les widget. C'est pourquoi j'ai introduit un
 jcCheckButton, qui hérite de ttk.Checkbutton mais avec un membre de
 plus qui est la valeur du bouton.
 
-Flag utile pour debugger colorSpecialAsHelpToWork
+La structure du GUI comprend un tk.Toplevel qui contient 2 tk.Frame :
+FrameB pour les boutons et FrameM pour manipuler les sections.
+FrameM contient un tk.Canvas et un tk.Scrollbar. Le canvas contient
+une fenetre avec le frame qui contient toutes les zones à remplir
+arrangées suivant le layout grid. 
 
 La section *arc2* sens>0 clockwise sens<=0 anti-clockwise
 
