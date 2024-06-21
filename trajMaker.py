@@ -179,22 +179,22 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     af = Af*180/pi
     ap = Ap*180/pi
     # here the 3 angles are in Degree on [0,360[
-    type=-1
+    typeMy=-1
     if ad<=ap and ap<af:   #dpf
-        type=0
+        typeMy=0
     elif ad<=af and af<ap: #dfp
-        type=1
+        typeMy=1
     elif af<=ad and ad<ap: #fdp
-        type=2
+        typeMy=2
     elif af<=ap and ap<ad: #fpd
-        type=3
+        typeMy=3
     elif ap<=ad and ad<af: #pdf
-        type=4
+        typeMy=4
     elif ap<=af and af<ad: #pfd
-        type=5
+        typeMy=5
     else:
         return "create_arcParameter: impossible error!",0,0,0,0,0,0
-    if type==0 or type==3:
+    if typeMy==0 or typeMy==3:
         extent  = ad-af
     else:
         extent= 360-(af-ad) if ad<af else -(af-ad)-360
@@ -443,14 +443,14 @@ class trajMaker():
                 except:
                     print(f"processTraj: exception line 446 |section={section}| |ss={ss}|")
                 localDico[k]=v
-            type = localDico["type"]
-            if type=="w" or type=="start" or type=="end":
+            typeMy = localDico["type"]
+            if typeMy=="w" or typeMy=="start" or typeMy=="end":
                 continue
             speed = localDico["speed"]
             plasma = localDico["plasma"]
             color = 'red' if plasma=="1" else 'green'
             w = int(speed)//10+1
-            if type=='line':
+            if typeMy=='line':
                 xF = float(localDico["xF"])
                 yF = float(localDico["yF"])
                 zF = float(localDico["zF"])
@@ -461,7 +461,7 @@ class trajMaker():
                 self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xF+e,convFactor*yF+e, fill=color, width=2)
                 xcur = xF
                 ycur = yF
-            elif type=="ezsqx":
+            elif typeMy=="ezsqx":
                 # first: a straight line         _
                 # second: n              times _| |
                 xF = float(localDico["xF"])
@@ -494,7 +494,7 @@ class trajMaker():
                     # (xcur,ycur)->(xcur,ycur+L)
                     self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
                     ycur += L
-            elif type=="ezsqy":
+            elif typeMy=="ezsqy":
                 # first: a straight line         _
                 # second: n          
                 xF = float(localDico["xF"])
@@ -527,7 +527,7 @@ class trajMaker():
                     # (xcur,ycur)->(xcur+L,ycur)
                     self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+L)+e,convFactor*ycur+e, fill=color, width=w)
                     xcur += L
-            elif type=="arc1": # pt final et pt passage
+            elif typeMy=="arc1": # pt final et pt passage
                 xF = float(localDico["xF"])
                 yF = float(localDico["yF"])
                 xd = xcur # debut de la trajectoire
@@ -549,7 +549,7 @@ class trajMaker():
                    
                 xcur = xF
                 ycur = yF
-            elif type=="arc2": # pt final, centre et sens
+            elif typeMy=="arc2": # pt final, centre et sens
                 sens = int(localDico["sens"]) # sens
                 xd = xcur # debut de la trajectoire
                 yd = ycur # debut de la trajectoire
@@ -586,7 +586,7 @@ class trajMaker():
                     self.canvasImage.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
                 xcur = xF
                 ycur = yF
-            elif type=="circ1": # pt de passage 1 pt de passage 2
+            elif typeMy=="circ1": # pt de passage 1 pt de passage 2
                 xd = xcur # debut de la trajectoire
                 yd = ycur # debut de la trajectoire
                 xP1 = float(localDico["xP1"]) # x passge1
@@ -605,7 +605,7 @@ class trajMaker():
                 self.canvasImage.create_oval(convFactor*(xC-R)+e,convFactor*(yC-R)+e,convFactor*(xC+R)+e,convFactor*(yC+R)+e,outline=color,width=w)
                 xF = xcur
                 yF = ycur
-            elif type=="circ2": #  centre et sens
+            elif typeMy=="circ2": #  centre et sens
                 xd = xcur # debut de la trajectoire
                 yd = ycur # debut de la trajectoire
                 xC = float(localDico["xC"]) # x center
@@ -620,9 +620,9 @@ class trajMaker():
                 xF = xd # closed circle
                 yF = yd # closed circle
             else:
-                messagebox.showinfo("information",f"processTraj: {type} not yet implemented")
+                messagebox.showinfo("information",f"processTraj: {typeMy} not yet implemented")
             if (xcur-xF)**2 + (ycur-yF)**2 >1e-5:
-                messagebox.showinfo("Erreur Grave",f"type={type} Pt final {xcur,ycur} loin de celui demande={xF,yF}")
+                messagebox.showinfo("Erreur Grave",f"typeMy={typeMy} Pt final {xcur,ycur} loin de celui demande={xF,yF}")
         # fin du traitement de la section
     # FIN def proccessTraj(self):
     # ################################################################################
@@ -640,16 +640,16 @@ class trajMaker():
             if not self.frame.grid_slaves(row=l,column=c-1)[0].get(): # not selected
                 continue
             w = self.frame.grid_slaves(row=l,column=0)[0]
-            type = w.get()
-            if type =="":
+            typeMy = w.get()
+            if typeMy =="":
                 continue
-            if not type in self.implementedTypes:
+            if not typeMy in self.implementedTypes:
                 messagebox.showinfo("information","one of the types is not implemented")
                 return  # since the type is not yet implemented (TODO)
             # here a type implemented
-            dico = self.Dico[type]
+            dico = self.Dico[typeMy]
             params=dico.keys()
-            parameters= "type="+type+" "
+            parameters= "type="+typeMy+" "
             for key in dico.keys():
                 k = dico[key]
                 val = self.frame.grid_slaves(row=l,column=k)[0].get()
@@ -666,7 +666,7 @@ class trajMaker():
                         ok = False
                     if not ok:
                         messagebox.showerror("Can't proccess",f"A wrong entry on line {l} column {k} value={val}")
-                        print(f"line {l} column {k} value={val} type={type} key={key}")
+                        print(f"line {l} column {k} value={val} typeMy={type} key={key}")
                         return
                 parameters += key+"="+val+" "
             self.trajDescript.append(parameters)
@@ -903,9 +903,10 @@ class trajMaker():
         # duplication des combobox de choix de type column=0
         for irow in range(r-1,line,-1):
             print(f"insertLineBelow: irow={irow}")
-            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            print(f"insertLineBelow:type={type}")
-            self.frame.grid_slaves(row=irow+1,column=0)[0].set(type)
+            typeMy = self.frame.grid_slaves(row=irow,column=0)[0].get()
+            print(f"insertLineBelow:typeMy={typeMy}")
+            self.frame.grid_slaves(row=irow+1,column=0)[0].set(typeMy)
+            self.frame.grid_slaves(row=irow+1,column=0)[0].config(state="enbled")
         self.frame.grid_slaves(row=line+1,column=0)[0].set("")
         # duplications des parametres de col 1 a col 9
         for icol in range(1,9):
@@ -939,10 +940,11 @@ class trajMaker():
         print("duplique decale vers le bas les lignes {line} .. derniere ")
         c,r = self.frame.size()
         self.addLine()
-        # duplication des combobox de choix de type column=0
+        # duplication des combobox de choix de typeMy column=0
         for irow in range(r-1,line-1,-1):
-            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            self.frame.grid_slaves(row=irow+1,column=0)[0].set(type)
+            typeMy = self.frame.grid_slaves(row=irow,column=0)[0].get()
+            self.frame.grid_slaves(row=irow+1,column=0)[0].set(typeMy)
+            self.frame.grid_slaves(row=irow+1,column=0)[0].config(state="enbled")
         self.frame.grid_slaves(row=line,column=0)[0].set("")
         # duplications des parametres de col 1 a col 9
         for icol in range(1,9):
@@ -1000,8 +1002,8 @@ class trajMaker():
         c,r = self.frame.grid_size()
         ok = True
         try:
-            type = self.frame.grid_slaves(row=line,column=0)[0].get()
-            paramDico = self.Dico[type]
+            typeMy = self.frame.grid_slaves(row=line,column=0)[0].get()
+            paramDico = self.Dico[typeMy]
         except:
             ok = False
         if not ok:
@@ -1029,7 +1031,7 @@ class trajMaker():
         for icol in range(1,9): # le combobox reste le meme
             self.frame.grid_slaves(row=line,column=icol)[0].delete(0,tk.END)
         paramDico = self.copyed[0]
-        type = paramDico["type"]
+        typeMy = paramDico["type"]
         self.dicoToLine(line,paramDico)
         toplevelEditLine.destroy()
         self.renumber()
@@ -1256,8 +1258,8 @@ class trajMaker():
                 continue
             # a line to insert : make the corresponding dictionnary
             paramDico={}
-            type = self.frame.grid_slaves(row=irow,column=0)[0].get()
-            localDico = self.Dico[type]
+            typeMy = self.frame.grid_slaves(row=irow,column=0)[0].get()
+            localDico = self.Dico[typeMy]
             for key in localDico.keys():
                 col = localDico[key]
                 val = self.frame.grid_slaves(row=irow,column=col)[0].get()
@@ -1275,8 +1277,8 @@ class trajMaker():
         if line >=r or line<0:
             return
         paramDico={}
-        type = self.frame.grid_slaves(row=line,column=0)[0].get()
-        localDico = self.Dico[type]
+        typeMy = self.frame.grid_slaves(row=line,column=0)[0].get()
+        localDico = self.Dico[typeMy]
         for key in localDico.keys():
             col = localDico[key]
             val = self.frame.grid_slaves(row=line,column=col)[0].get()
@@ -1304,9 +1306,9 @@ class trajMaker():
                     self.frame.grid_slaves(row=irow,column=icol)[0].delete(0,tk.END)
                     self.frame.grid_slaves(row=irow,column=icol)[0].config(state="disabled")
         # set new values
-        type = paramDico["type"]            
+        typeMy = paramDico["type"]            
         for key in paramDico.keys():
-            col = self.Dico[type][key]
+            col = self.Dico[typeMy][key]
             val = paramDico[key]
             #print(f"lineToDico: en {col} mettre {val}")
             w = self.frame.grid_slaves(row=irow,column=col)[0]
