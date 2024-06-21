@@ -31,58 +31,58 @@ def isOnArc( te,  ts,  tp,  t):
     arc te<->ts des deux cotes on garde celui qui contient tp,
     et on demande si t est dessus
     """
-    if (ORDONNE(te, ts, tp, t)):
+    if ORDONNE(te, ts, tp, t):
         return 1
-    if (ORDONNE(te, tp, ts, t)):
+    if ORDONNE(te, tp, ts, t):
         return 0
-    if (ORDONNE(ts, te, tp, t)):
+    if ORDONNE(ts, te, tp, t):
         return 1
-    if (ORDONNE(ts, tp, te, t)):
+    if ORDONNE(ts, tp, te, t):
         return 0
-    if (ORDONNE(tp, te, ts, t)):
+    if ORDONNE(tp, te, ts, t):
         return 1
-    if (ORDONNE(tp, ts, te, t)):
+    if ORDONNE(tp, ts, te, t):
         return 1
 
-    if (ORDONNE(te, ts, t, tp)):
+    if ORDONNE(te, ts, t, tp):
         return 1
-    if (ORDONNE(te, tp, t, ts)):
+    if ORDONNE(te, tp, t, ts):
         return 1
-    if (ORDONNE(ts, te, t, tp)):
+    if ORDONNE(ts, te, t, tp):
         return 1
-    if (ORDONNE(ts, tp, t, te)):
+    if ORDONNE(ts, tp, t, te):
         return 1
-    if (ORDONNE(tp, te, t, ts)):
+    if ORDONNE(tp, te, t, ts):
         return 0
-    if (ORDONNE(tp, ts, t, te)):
+    if ORDONNE(tp, ts, t, te):
         return 0
 
-    if (ORDONNE(te, t, ts, tp)):
+    if ORDONNE(te, t, ts, tp):
         return 0
-    if (ORDONNE(te, t, tp, ts)):
+    if ORDONNE(te, t, tp, ts):
         return 1
-    if (ORDONNE(ts, t, te, tp)):
+    if ORDONNE(ts, t, te, tp):
         return 0
-    if (ORDONNE(ts, t, tp, te)):
+    if ORDONNE(ts, t, tp, te):
         return 1
-    if (ORDONNE(tp, t, te, ts)):
+    if ORDONNE(tp, t, te, ts):
         return 1
-    if (ORDONNE(tp, t, ts, te)):
+    if ORDONNE(tp, t, ts, te):
         return 1
 
-    if (ORDONNE(t, te, ts, tp)):
+    if ORDONNE(t, te, ts, tp):
         return 1
-    if (ORDONNE(t, te, tp, ts)):
+    if ORDONNE(t, te, tp, ts):
         return 0
-    if (ORDONNE(t, ts, te, tp)):
+    if ORDONNE(t, ts, te, tp):
         return 1
-    if (ORDONNE(t, ts, tp, te)):
+    if ORDONNE(t, ts, tp, te):
         return 0
-    if (ORDONNE(t, tp, te, ts)):
+    if ORDONNE(t, tp, te, ts):
         return 1
-    if (ORDONNE(t, tp, ts, te)):
+    if ORDONNE(t, tp, ts, te):
         return 1
-    return 0 
+    return 0
 
 def rectangleExinscritEPS(xe, ye, xp, yp, xs, ys):
     """
@@ -121,7 +121,7 @@ def angle(x,y) :
     """
     R = sqrt(x * x + y * y)
     t = acos(x / R) # 0<=t<=pi
-    if (abs(R * sin(t) - y) > 1e-6):
+    if abs(R * sin(t) - y) > 1e-6:
         t = 2 * pi - t
     return t
 
@@ -129,12 +129,12 @@ def cercleCano(x1, y1, x2, y2, x3, y3,):
     """
     affecte le centre et rayons du cercle passant par (x1,y1),(x2,y2) et x3,y3)
     """
-    denom = -2*x1*y3 + 2*y1*x3 - 2*x2*y1 + 2*x2*y3 + 2*y2*x1 - 2*y2*x3;
+    denom = -2*x1*y3 + 2*y1*x3 - 2*x2*y1 + 2*x2*y3 + 2*y2*x1 - 2*y2*x3
     num_xCenter = -x1*x1*y3 + y2*x1*x1 - y1*y2*y2 - y1*y1*y3 - y3*y3*y2 + y1*y3*y3 + y1*y1*y2 + y3*x2*x2 + y1*x3*x3 + y3*y2*y2 - y1*x2*x2 - x3*x3*y2
     num_yCenter = x1*x1*x3 - x1*x3*x3 - x1*y3*y3 + y1*y1*x3 + x2*x2*x1 - x2*x2*x3 - x2*x1*x1 - x2*y1*y1 + x2*x3*x3 + x2*y3*y3 + y2*y2*x1 - y2*y2*x3
-    xCenter = num_xCenter / denom;
-    yCenter = num_yCenter / denom;
-    R = sqrt((x1 - xCenter)*(x1 - xCenter) + (y1 - yCenter)*(y1 - yCenter));
+    xCenter = num_xCenter / denom
+    yCenter = num_yCenter / denom
+    R = sqrt((x1 - xCenter)*(x1 - xCenter) + (y1 - yCenter)*(y1 - yCenter))
     return xCenter,yCenter,R
 
 def fromPtsToCenterR(x1,y1,x2,y2,x3,y3):
@@ -178,7 +178,7 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     ad = Ad*180/pi
     af = Af*180/pi
     ap = Ap*180/pi
-    # here the 3 angles are in Degree on [0,360[ 
+    # here the 3 angles are in Degree on [0,360[
     type=-1
     if ad<=ap and ap<af:   #dpf
         type=0
@@ -212,10 +212,10 @@ class jcCheckbutton(ttk.Checkbutton):
         variable = tk.IntVar()
         self.v = variable
         super().__init__(parent,  variable=variable, **kwargs)
-    
+
     def get(self):
         return self.v.get()
-    
+
     def set(self,v):
         self.v.set(v)
  # FIN class jcCheckbutton(ttk.Checkbutton)
@@ -242,7 +242,7 @@ class trajMaker():
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
     implementedTypes = types[:] # usefull for adding new types of section
     widthCell = 6
-    # le type doit etre un combobox en colonne 0 
+    # le type doit etre un combobox en colonne 0
     Dico={"line":{"type":0,"xF":1,"yF":2,"zF":3,"speed":8,"plasma":9},                 # point final
           "ezsqx":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},           # point final nb de zigzag
           "ezsqy":{"type":0,"xF":1,"yF":2,"nZigZag":4,"speed":8,"plasma":9},           # point final nb de zigzag
@@ -261,7 +261,7 @@ class trajMaker():
         colorSpecialAsHelpToWork = False
         self.arc2Fake = 1    # Ycenter computed not read in the GUI
         self.backgroundImageName = "./backgroundImage.jpg"
-        closable = True # False is usefull sometimes to keep track of what happens 
+        closable = True # False is usefull sometimes to keep track of what happens
         largParent,hautParent = 615,300
         largFrameM,hautFrameM = largParent,hautParent
         largCan,hautCan       = 604,300
@@ -296,7 +296,7 @@ class trajMaker():
         self.scrollbar_y = ttk.Scrollbar(self.frameM, orient=tk.VERTICAL, command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.scrollbar_y.set)
         self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
-        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)        
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         # Creation d'un autre frame a l'interieur du canvas pour contenir d'autres widget: THE FRAME
         self.frame = ttk.Frame(self.canvas, width=largFrame,height=hautFrame)
         self.style = ttk.Style()
@@ -757,25 +757,6 @@ class trajMaker():
             input("??")
     # FIN def overWriteLine1ByLine2(self,line1,line2)
     # ################################################################################
-    
-    def delLine(self,line):
-        """
-        all cells of line are destroy (ie contains []),
-        therefore the number of row is NOT changed, but empy line are not shown
-        """
-        c,r = self.frame.grid_size()
-        # print(f"delLine: entering c,r,line={c,r,line}")
-        # self.frame.update_idletasks()
-        if line<0 or line>= r :
-            return
-        # delete line
-        for icol in range(c):
-            if self.frame.grid_slaves(row=line,column=icol) != []:
-                self.frame.grid_slaves(row=line,column=icol)[0].destroy()
-        #self.renumber()
-        # print(f"delLine: leaving  c,r={self.frame.grid_size()}")
-    # FIN def delLine (self,line)
-    # ################################################################################
             
     def deselectAll(self):
         c,r = self.frame.grid_size()
@@ -984,16 +965,38 @@ class trajMaker():
         # FIN def insertLineAbove(self,line,toplevelEditLine):
     # ################################################################################
     
-    def removeLine(self,line,toplevelEditLine):
-        print(f"removeLine: entering with {line} {toplevelEditLine}")
-        for icol in range(11):
-            self.frame.grid_slaves(row=line,column=icol)[0].grid_remove()
-        toplevelEditLine.destroy()
-        self.renumber()
+    # def removeLine(self,line,toplevelEditLine):
+    #     print(f"removeLine: entering with {line} {toplevelEditLine}")
+    #     for icol in range(11):
+    #         self.frame.grid_slaves(row=line,column=icol)[0].grid_remove()
+    #     toplevelEditLine.destroy()
+    #     self.renumber()
     # FIN def removeLine(self,line,toplevelEditLine)
     # ################################################################################
-    
+
+    def delLine(self,line,toplevelEditLine):
+        """
+        all cells of line are destroy (ie contains []),
+        therefore the number of row is NOT changed, but empy line are not shown
+        """
+        c,r = self.frame.grid_size()
+        # print(f"delLine: entering c,r,line={c,r,line}")
+        if line<0 or line>= r :
+            return
+        for icol in range(c):
+            if self.frame.grid_slaves(row=line,column=icol) != []:
+                self.frame.grid_slaves(row=line,column=icol)[0].destroy()
+        toplevelEditLine.destroy()
+        self.renumber()
+        # print(f"delLine: leaving  c,r={self.frame.grid_size()}")
+    # FIN def delLine (self,line)
+    # ################################################################################
+
     def copyLine(self,line,toplevelEditLine):
+        """
+        copy line into the list self.copyed.
+        At this point this list has a single item (which is a dictionnary)
+        """
         c,r = self.frame.grid_size()
         ok = True
         try:
@@ -1009,13 +1012,12 @@ class trajMaker():
         dicoCopied= {}
         for key in paramDico.keys():
             w = self.frame.grid_slaves(row=line,column=paramDico[key])[0]
-            print(f"copyLine: {paramDico[key],w}")
             val = w.get()
-            print(f"val={val}")
             dicoCopied[key]=val
-        print(f"insertLineBelow: copied={dicoCopied}")
-        self.copyed.append(dicoCopied)
+        # self.copyed.append(dicoCopied) # in prevision of several lines in the hidden buffer
+        self.copyed = [dicoCopied]
         self.renumber()
+        messagebox.showinfo("",f"line {line} is now in the clipboard")
     # FIN def copyLine(self,line,toplevelEditLine)
     # ################################################################################
         
@@ -1051,7 +1053,7 @@ class trajMaker():
             lab = ttk.Label(toplevelEditLine,text="Line %d"%(line+1),width=17)
             butInsBel = ttk.Button(toplevelEditLine,text="Insert line below",width=17,command=lambda :self.insertLineBelow(line,toplevelEditLine))
             butInsAbo = ttk.Button(toplevelEditLine,text="Insert line above",width=17,command=lambda :self.insertLineAbove(line,toplevelEditLine))
-            butDel = ttk.Button(toplevelEditLine,text="Delete line",width=17,command=lambda :self.removeLine(line,toplevelEditLine))
+            butDel = ttk.Button(toplevelEditLine,text="Delete line",width=17,command=lambda :self.delLine(line,toplevelEditLine))
             butCop = ttk.Button(toplevelEditLine,text="Copy line",width=17,command=lambda :self.copyLine(line,toplevelEditLine))
             butPas = ttk.Button(toplevelEditLine,text="Paste line",width=17,command=lambda :self.pasteLine(line,toplevelEditLine))
             butCancel = ttk.Button(toplevelEditLine,text="Cancel",width=17,command= lambda: toplevelEditLine.destroy())
@@ -1080,7 +1082,7 @@ class trajMaker():
             w.config(state="disabled")
             w.grid(row=r,column=k) # position finale du premier section
         w = jcCheckbutton(self.frame,text="Plasma",width=self.widthCell+1)
-        w.set(False);
+        w.set(False)
         w.grid(row=r,column=9) # plasma
         w = ttk.Label(self.frame,text="%d"%(r+1),borderwidth=0.5,width=4,relief="solid")
         w.grid(row=r,column=10) # label
@@ -1088,7 +1090,7 @@ class trajMaker():
         w.bind("<Enter>", lambda event :event.widget.config(style="red.TLabel"))
         w.bind("<Leave>", lambda event :event.widget.config(style="default.TLabel"))
         w = jcCheckbutton(self.frame,width=0)
-        w.set(True);
+        w.set(True)
         w.grid(row=r,column=11) # selecteur        
         if line=="":
             return
@@ -1349,6 +1351,9 @@ class trajMaker():
                     L.append(l[0])
             table.append(L)
         return table
+
+def cucu():
+    return
 
 if __name__=='__main__':
     root = tk.Tk()

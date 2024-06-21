@@ -4,4 +4,4 @@
 TRADUCTION
 ------------------------------------------------------------
 Avoir une double representation des données : interne et gui, 
-pouvoir ici n'afficher que des lignes choisies de la representation interne.
+et pouvoir ici n'afficher que des lignes choisies de la representation interne.
