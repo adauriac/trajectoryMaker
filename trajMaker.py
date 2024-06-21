@@ -236,8 +236,9 @@ class trajMaker():
     It can be instancied with a Toplevel, or without (root is then used)
 
     12 columns:
-        0              1    ...      8            9          10     11
-    ttk.Combobbox ttk.Entry ... ttk.Entry  jcCheckbutton tk.label jcCheckbutton
+        0               1     ...      8            9           10           11
+    ttk.Combobbox  ttk.Entry  ...  ttk.Entry  jcCheckbutton  tk.label  jcCheckbutton
+    type choice       para 1         para 8      plasma        number    selected   
     """
     types = ["line","ezsqx","ezsqy","arc1","arc2","circ1","circ2","start","end","w"]
     implementedTypes = types[:] # usefull for adding new types of section
