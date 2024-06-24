@@ -164,7 +164,7 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     ("ok",x1,y1,x2,y2,start,extent) or ("message",0,0,0,0,0,0
     """
     stat,xc,yc,R = fromPtsToCenterR(xd,yd,xf,yf,xp,yp)
-    # print(f"create_arcParameter: xc,yc,R={xc,yc,R}") #bidon
+    # print(f"create_arcParameter: xc,yc,R={xc,yc,R}")
     if stat!='ok':
         return stat,0,0,0,0,0,0
     # angles determination in Rd
@@ -202,6 +202,23 @@ def create_arcParameter(xd,yd,xf,yf,xp,yp):
     return "ok",xc-R,yc-R,xc+R,yc+R,-ad,extent
 # FIN def create_arcParameter(xd,yd,xf,yf,xp,yp)
 # #############################################################################################
+
+def cartesianToPolar(x,y,xc,yc):
+    """
+    the point is (x,y), circle center is (xc,yc)
+    return 0<=alpha<2*pi,R
+    """
+    a = atan2(y-yc,x-xc)
+    if a<0:
+        a += 2*pi
+    R = sqrt((x-xc)**2+(y-yc)**2)
+    xRecon = xc + R*cos(a)
+    yRecon = yc + R*sin(a)
+    if abs(x-xRecon)>0.1 or abs(y-yRecon)>0.1: # les distance de sont de m'order 1 a 100
+        messagebox.showwarning("warning","x=%lf xRecon=%lf y=%lf yRecon=%lf"%(x,xRecon,y,yRecon))
+    return a,R
+# FIN def cartesianToPolar(x,y,xc,yc)
+# ################################################################################
 
 class jcCheckbutton(ttk.Checkbutton):
     """
@@ -364,22 +381,8 @@ class trajMaker:
         self.topDraw = 0
         self.copyed = [] # copyed line as dictionnary to be pasted if asked
         # below some initial sections
-        if True:
+        if False:
             self.addLine("type=line xF=100 yF=100 zF=0 speed=5 plasma=1")
-        if False:
-            xc,yc=100,200
-            xf,yf=100+100*cos(0.45),200+100*sin(0.45)
-            self.addLine(f"type=arc2 xF={xf} yF={yf} xC={xc} yC={yc} sens=1  speed=8 plasma=0") # xf yf xc yc sens speed plasma
-        if False:
-            self.addLine("type=arc1 xF=200 yF=100 xP=150 yP=180 speed=12 plasma=0") # xf yf xp yp  speed plasma
-        if False:
-            self.addLine("type=circ1 xP1=200 yP1=120 xP2=150 yP2=180 speed=12 plasma=0") #
-        if False:
-            self.addLine("type=circ2 xC=200 yC=100 speed=12 sens=0 plasma=0") #
-        if False:
-            self.addLine("type=ezsqx xF=300 yF=320 nZigZag=5 speed=23 plasma=0") # xf yf nzigzag speed plasma
-        if False:
-            self.addLine("type=ezsqy xF=400 yF=400 nZigZag=9 speed=23 plasma=0") # xf yf nzigzag speed plasma
     # FIN def __init__(self,master=None, **kwargs):
     # ################################################################################
 
@@ -480,7 +483,8 @@ class trajMaker:
                 ycur += L
                 if n==0:
                     self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
-                    xcur += l
+                    xcur = xF
+                    ycur = yF
                     continue
                 for i in range(n):
                     # (xcur,ycur)->(xcur+l,ycur)
@@ -513,7 +517,8 @@ class trajMaker:
                 xcur += L
                 if n==0:
                     self.canvasImage.create_line(convFactor*xcur+e,convFactor*(ycur+l)+e,convFactor*xcur+e,convFactor*ycur+e, fill=color, width=w)
-                    xcur += l
+                    xcur = xF
+                    ycur = yF
                     continue
                 for i in range(n):
                     # (xcur,ycur)->(xcur,ycur+l)
@@ -546,12 +551,12 @@ class trajMaker:
                 if xmin<0 or xmax>self.widthPhysical or ymax<0 or ymax>self.heightPhysical:
                     msg=f"line {cpt} (arc1) a part of the trajectory is out of the frame"
                     messagebox.showerror("fatal",msg)
-                    return
-                   
+                    return                   
                 xcur = xF
                 ycur = yF
             elif typeMy=="arc2": # pt final, centre et sens
-                sens = int(localDico["sens"]) # sens
+                # Compute the passage point and re-use the case arc1 (copy/paste)
+                sens = int(localDico["sens"])
                 xd = xcur # debut de la trajectoire
                 yd = ycur # debut de la trajectoire
                 xF = float(localDico["xF"])
@@ -562,29 +567,34 @@ class trajMaker:
                     messagebox.showinfo("",f"ai force yc={yc} et je ne teste pas que la traj. reste dans le cadre")
                 else:
                     yc = float(localDico["yC"]) # y center
-                # print(f"xc,yc,sens={xc,yc,sens}") # bidon
-                R2 = (xd-xc)**2 + (yd-yc)**2 # rayon calcule avec point courant
-                R2a = (xF-xc)**2 + (yF-yc)**2 # rayon calcule avec point cible
-                if abs(R2-R2a)>0.1: # les rayons sont de l'ordre de 10 a 100 
+                AdR,Rd = cartesianToPolar(xd,yd,xc,yc)
+                AfR,Rf = cartesianToPolar(xF,yF,xc,yc)
+                if abs(Rd-Rf)>0.1: # les rayons sont de l'ordre de 10 a 100 
                     messagebox.showerror("Error",f"Inconsistent data for arc2 {R2,R2a} d,F,c={xd,yd,xF,yF,xc,yc}")
                     return
-                R = sqrt(R2)
-                AdR = atan2(yd-yc,xd-xc) # angle polaire debut
-                AfR = atan2(yF-yc,xF-xc) # angle polaire fin
-                if AdR<0:AdR += 2*pi
-                if AfR<0:AfR += 2*pi
-                ad = AdR*180/pi
-                af = AfR*180/pi
-                extent = (ad-af) if sens>0 else (ad-af)-360
-                # print(f"self.canvasImage.create_arc({xc-R,yc-R,xc+R,yc+R},start={-ad},extent={extent},style={tk.ARC})") bidon
-                self.canvasImage.create_arc(convFactor*(xc-R)+e,convFactor*(yc-R)+e,convFactor*(xc+R)+e,convFactor*(yc+R)+e,start=-ad,extent=extent,style=tk.ARC,outline=color,width=w)
-                # if status!='ok':                    messagebox.showinfo("information",status)
-                if False: # voir pourquoi ca ne marche pas
-                    X,u,v= rectangleExinscritCES(xc, yc, xd, yd, xF, yF, sens)
-                    xmin,ymin,xmax,ymax = X
-                    print(f"u,v={u,v}")
-                    self.canvasImage.create_oval(convFactor * u - 2 + e, convFactor * v - 2 + e, convFactor * u + 2 + e, convFactor * v + 2 + e)# visualieation du pt de passage
+                R = Rd # since Rf is the same
+                ApR = (AfR+AdR)/2
+                if sens<0:ApR+=pi
+                # determine the passage point
+                xp = R*cos(ApR)+xc
+                yp = R*sin(ApR)+yc
+                # print(f"passage ApR,xp,yp={ApR,xp,yp}")
+                # print(f"xd,yd={xd,yd} AdR={AdR} xF,yF={xF,yF} AfR={AfR}  xc,yc={xc,yc}")
+                # print(f"error debut={R*cos(AdR)+xc,xd}    {R*sin(AdR)+yc,yd}")
+                # print(f"error fin={R*cos(AfR)+xc,xF}    {R*sin(AfR)+yc,yF}")
+                # same as for passage point
+                status,a,b,c,d,start,extent = create_arcParameter(xd,yd,xF,yF,xp,yp)
+                self.canvasImage.create_arc(convFactor*a+e,convFactor*b+e,convFactor*c+e,convFactor*d+e,start=start,extent=extent,style=tk.ARC,outline=color,width=w)
+                if status!='ok':
+                    messagebox.showinfo("information",status)
+                # here test if the trajectory always in the frame
+                xmin,ymin,xmax,ymax = rectangleExinscritEPS(xd, yd, xp, yp, xF, yF)
+                if False: #show the rectangle exinscrit
                     self.canvasImage.create_rectangle(convFactor*xmin+e,convFactor*ymin+e,convFactor*xmax+e,convFactor*ymax+e)
+                if xmin<0 or xmax>self.widthPhysical or ymax<0 or ymax>self.heightPhysical:
+                    msg=f"line {cpt} (arc1) a part of the trajectory is out of the frame"
+                    messagebox.showerror("fatal",msg)
+                    return                   
                 xcur = xF
                 ycur = yF
             elif typeMy=="circ1": # pt de passage 1 pt de passage 2
@@ -964,7 +974,7 @@ class trajMaker:
         # FIN def insertLineAbove(self,line,toplevelEditLine):
     # ################################################################################
     
-    def delLine(self,line,toplevelEditLine):
+    def delLine(self,line):
         """
         all cells of line are destroy (ie contains []),
         therefore the number of row is NOT changed, but empy line are not shown
@@ -976,7 +986,6 @@ class trajMaker:
         for icol in range(c):
             if self.frame.grid_slaves(row=line,column=icol) != []:
                 self.frame.grid_slaves(row=line,column=icol)[0].destroy()
-        toplevelEditLine.destroy()
         self.renumber()
         # print(f"delLine: leaving  c,r={self.frame.grid_size()}")
     # FIN def delLine (self,line)
@@ -1067,6 +1076,7 @@ class trajMaker:
         w = ttk.Combobox(self.frame,values=self.types,width=self.widthCell,state="readonly")
         w.bind("<<ComboboxSelected>>", lambda  event : self.comboboxSelect(event,r))
         w.grid(row=r,column=0) # choix de prochain section
+        w.config(state="normal")
         for k in range(1,9):
             w = ttk.Entry(self.frame,width=self.widthCell)
             w.config(state="disabled")
@@ -1341,5 +1351,5 @@ if __name__=='__main__':
             input("?")
     if 'run' in sys.argv:
         root.mainloop()
-
+    # my.loadFile("examples/okArc2")
 
