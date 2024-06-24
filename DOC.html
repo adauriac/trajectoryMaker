@@ -67,8 +67,8 @@ ont été testées avec succès. De plus le module PIL (testé avec version 10.2
 10.3.0) est utile pour l'image de fond, mais n'est pas indispensable.</p>
 <p>La classe trajMaker.trajMaker peut etre appelée sans parent ou avec un parent :
 soit tk.Tk() soit un tk.Toplevel(). Si elle est appelée avec un
-toplevel son layout DOIT etre pack(). Si elle appelée sans parent un
-toplevel sera cree. Dans tous les cas myApp.parent sera accessible.</p>
+toplevel son layout <strong>doit</strong> etre pack(). Si elle appelée sans parent un
+toplevel sera cree. Dans tous les cas myApp.parent sera disponible.</p>
 <p>Au début du constructeur de la classe trajMaker.trajMaker il y a un
 ensemble de paramètres que l'on peut modifier pour debugger plus
 facilement ou pour changer l'aspect du GUI. Leurs noms sont explicites.
@@ -92,5 +92,10 @@ arrangées suivant le layout grid. </p>
     rajouter une nouvelle entree dans Dico et Types, la nouvelle entrée sera proposée 
     dans "comboboxSelect()" rajouter le cas à traiter
     dans "processTraj()" traiter effectivement le cas</p>
+<p>Format lisible de fichier: c'est un fichier texte avec une ligne par section,
+le texte entre un # et le prochain retour à la ligne est un commentaire.
+Chaque ligne contient une série de <em>clef=value</em>. Les clefs <em>type</em>, <em>plasma</em>
+et <em>speed</em> sont obligatoires. Tous les autres paramètres spécifiques à <em>type</em> 
+<strong>doivent</strong> etre spécifiés.</p>
 </body>
 </html>

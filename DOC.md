@@ -68,8 +68,8 @@ ont été testées avec succès. De plus le module PIL (testé avec version 10.2
 
 La classe trajMaker.trajMaker peut etre appelée sans parent ou avec un parent :
 soit tk.Tk() soit un tk.Toplevel(). Si elle est appelée avec un
-toplevel son layout DOIT etre pack(). Si elle appelée sans parent un
-toplevel sera cree. Dans tous les cas myApp.parent sera accessible.
+toplevel son layout **doit** etre pack(). Si elle appelée sans parent un
+toplevel sera cree. Dans tous les cas myApp.parent sera disponible.
 
 Au début du constructeur de la classe trajMaker.trajMaker il y a un
 ensemble de paramètres que l'on peut modifier pour debugger plus
@@ -99,3 +99,9 @@ Creation d'un nouveau type de troncon:
 	rajouter une nouvelle entree dans Dico et Types, la nouvelle entrée sera proposée 
 	dans "comboboxSelect()" rajouter le cas à traiter
 	dans "processTraj()" traiter effectivement le cas
+
+Format lisible de fichier: c'est un fichier texte avec une ligne par section,
+le texte entre un # et le prochain retour à la ligne est un commentaire.
+Chaque ligne contient une série de *clef=value*. Les clefs *type*, *plasma*
+et *speed* sont obligatoires. Tous les autres paramètres spécifiques à *type* 
+**doivent** etre spécifiés.
