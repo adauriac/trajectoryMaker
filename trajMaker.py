@@ -574,7 +574,7 @@ class trajMaker:
                     return
                 R = Rd # since Rf is the same
                 ApR = (AfR+AdR)/2
-                if AfR < Adr:sens=-sens
+                if AfR < AdR:sens=-sens
                 if sens<0:ApR+=pi
                 # determine the passage point
                 xp = R*cos(ApR)+xc
@@ -748,28 +748,10 @@ class trajMaker:
             doIt = self.frame.grid_slaves(row=irow,column=11)[0].get()
             if doIt: # selectelines
                 self.delLine(irow)
-        print(f"delSelectLines: leaving at {time.time()}")
+        # print(f"delSelectLines: leaving at {time.time()}")
     # FIN def delSelectLines(self):
     # ################################################################################
 
-    def overWriteLine1ByLine2(self,line1,line2):
-        """
-        line1 is REPLACED by line2,
-        therefore line2 appears twice and line1 does not appear anymore
-        """
-        c,r = self.frame.grid_size()
-        print(f"overWriteLine1ByLine2: entering c,r={c,r}")
-        if line1>=r or line2>=r:
-            return
-        for icol in range(c):
-            w = self.frame.grid_slaves(row=line2,column=icol)[0]
-            self.frame.grid_slaves(row=line1,column=icol)[0].destroy()
-            input("?")
-            w.grid(row=line1,column=icol)
-            input("??")
-    # FIN def overWriteLine1ByLine2(self,line1,line2)
-    # ################################################################################
-            
     def deselectAll(self):
         c,r = self.frame.grid_size()
         for i in range(r):
@@ -992,6 +974,25 @@ class trajMaker:
     # FIN def delLine (self,line)
     # ################################################################################
 
+    def delLine2(self,line,toplevelEditLine):
+        """
+        all cells of line are destroy (ie contains []),
+        therefore the number of row is NOT changed, but empy line are not shown
+        and the toplevelEditLine is destroy
+        """
+        c,r = self.frame.grid_size()
+        # print(f"delLine2: entering c,r,line={c,r,line}")
+        if line<0 or line>= r :
+            return
+        for icol in range(c):
+            if self.frame.grid_slaves(row=line,column=icol) != []:
+                self.frame.grid_slaves(row=line,column=icol)[0].destroy()
+        toplevelEditLine.destroy()
+        self.renumber()
+        # print(f"delLine2: leaving  c,r={self.frame.grid_size()}")
+    # FIN def delLine2 (self,line)
+    # ################################################################################
+
     def copyLine(self,line,toplevelEditLine):
         """
         copy line into the list self.copyed.
@@ -1053,7 +1054,7 @@ class trajMaker:
             lab = ttk.Label(toplevelEditLine,text="Line %d"%(line+1),width=17)
             butInsBel = ttk.Button(toplevelEditLine,text="Insert line below",width=17,command=lambda :self.insertLineBelow(line,toplevelEditLine))
             butInsAbo = ttk.Button(toplevelEditLine,text="Insert line above",width=17,command=lambda :self.insertLineAbove(line,toplevelEditLine))
-            butDel = ttk.Button(toplevelEditLine,text="Delete line",width=17,command=lambda :self.delLine(line,toplevelEditLine))
+            butDel = ttk.Button(toplevelEditLine,text="Delete line",width=17,command=lambda :self.delLine2(line,toplevelEditLine))
             butCop = ttk.Button(toplevelEditLine,text="Copy line",width=17,command=lambda :self.copyLine(line,toplevelEditLine))
             butPas = ttk.Button(toplevelEditLine,text="Paste line",width=17,command=lambda :self.pasteLine(line,toplevelEditLine))
             butCancel = ttk.Button(toplevelEditLine,text="Cancel",width=17,command= lambda: toplevelEditLine.destroy())
@@ -1187,7 +1188,7 @@ class trajMaker:
         Save with the format imposed by plasmagui
         """
         c,r = self.frame.grid_size()
-        print(f"saveToFile: entering c,r={c,r}")
+        # print(f"saveToFile: entering c,r={c,r}")
         fileName = filedialog.asksaveasfilename()
         if fileName=='':
             return # since "cancel" has been used
