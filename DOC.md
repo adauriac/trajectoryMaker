@@ -57,6 +57,8 @@ Quand un pop-up d'édition est activé les autres fenêtres sont
 inactives, et il faut choisir une option du menu (par exemple *cancel*) pour
 libérer l'interface graphique.
 
+Pour *ezsqx* (resp. *ezsqy*) il y a 2n+1 trajet à x (resp. y) fixé.
+
 --------------------------------------------------------------
 # POUR LES DEVELOPPEURS (SOUS LE CAPOT) #
 

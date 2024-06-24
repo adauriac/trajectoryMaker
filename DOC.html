@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>DOC.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<h1>POUR L'UTILISATEUR</h1>
+<p>Cette application sert à générer, modifier, afficher des trajectoires.</p>
+<p>Les trajectoires crées peuvent être sauvegardées dans un fichier, ou
+affichées dans une fenêtre sur l'écran. Il y a deux formats le format
+historique csv, et un format spécifique plus lisible. Cette même
+application permet de traduire d'un format dans l'autre car elle
+peut lire et écrire des fichiers des deux types.</p>
+<p>D'autre applications de la suite permettent d'"exécuter" les trajectoires.</p>
+<p>Une trajectoire est un ensemble de sections comme définies dans plasmaGui.
+Ce sont line, ezsqx, ezsqy, arc1 arc2, circ1 et circ2.
+Il y a aussi des commandes de contrôle permettant de répéter des séquences.
+Ce sont start, end, w.</p>
+<p>Lorsqu'on démarre l'application apparait un écran divisé en deux parties.
+En haut les boutons de controle, en bas la zone d'entrée des sections.
+Chaque section correspond à une ligne, qui contient le type de la section,
+les paramètres associés à cette section, un bouton à cocher pour indiquer
+de parcourir cette section avec le plasma actif ou non, un aute bouton à
+cocher pour déselectioner la ligne (une ligne déselectionnée est considérée
+comme absente), et un numéro de ligne permettant aussi d'insérer une ligne
+avant ou après. Il peut y avoir plus de sections que lignes possibles dans
+la zone d'entrée. Dans ce cas là un "ascenceur" apparaît qui permettent
+d'ajuster la partie visible. Le nombre maximum de lignes est fixé dans le
+source du programme, la valeur choisie est 200 (il y a des commentaires sur
+ce point dans la section "sous le capot". Le nombre de lignes visibles
+est implicitement fixé par la hauteur de la zone d'entrée. La taille des
+fenêtres est fixe. </p>
+<p>Le bouton "<em>Add a line</em>" ajoute une ligne à la fin.</p>
+<p>Le bouton "<em>Delete selected lines</em>" supprime les lignes sélectionnées (on peut
+préferrer les déselectionner seulement qui permet de les remettre)</p>
+<p>Le bouton "<em>Load</em>" permet de lire un fichier sur le disque, à l'un
+deux formats possibles (le suffixe indique quel le format du fichier.</p>
+<p>Le bouton "<em>Show/Save</em>" permet de visualiser la trajectoire avec, si
+nécessaire, une image au nom non configurable "backgroundImage.jpg" 
+comme fond. les coordonnées de la souris dans les unités physiques sont
+montrées en permanence pour aider à remplir les paramètres des
+sections.</p>
+<p>Pour chaque ligne la dernière colonne permet de selectionner ou
+déselectionner cette ligne. Les lignes non sélectionnées sont visibles
+mais considérées comme absentes lorsque l'on dessine ou sauve la
+trajectoire.</p>
+<p>Pour chaque ligne l'avant dernière colonne permet d'éditer cette ligne.
+"<em>Insert line above</em>" et "<em>Insert line below</em> " insère une ligne.
+"<em>Copy line</em>" place la ligne dans le presse-papier. "<em>Paste line</em>"
+remplace la ligne courrante par la ligne du presse-papier.
+Quand un pop-up d'édition est activé les autres fenêtres sont
+inactives, et il faut choisir une option du menu (par exemple <em>cancel</em>) pour
+libérer l'interface graphique.</p>
+<p>Pour <em>ezsqx</em> (resp. <em>ezsqy</em>) il y a 2n+1 trajet à x (resp. y) fixé.</p>
+<hr />
+<h1>POUR LES DEVELOPPEURS (SOUS LE CAPOT)</h1>
+<p>Cette application nécessite python 3 et tkinter, différentes version
+ont été testées avec succès. De plus le module PIL (testé avec version 10.2.0 et
+10.3.0) est utile pour l'image de fond, mais n'est pas indispensable.</p>
+<p>La classe trajMaker.trajMaker peut etre appelée sans parent ou avec un parent :
+soit tk.Tk() soit un tk.Toplevel(). Si elle est appelée avec un
+toplevel son layout DOIT etre pack(). Si elle appelée sans parent un
+toplevel sera cree. Dans tous les cas myApp.parent sera accessible.</p>
+<p>Au début du constructeur de la classe trajMaker.trajMaker il y a un
+ensemble de paramètres que l'on peut modifier pour debugger plus
+facilement ou pour changer l'aspect du GUI. Leurs noms sont explicites.
+Par exemple le flag <em>colorSpecialAsHelpToWork</em> peut être mis True pour
+aider à ajuster les fenêtres.</p>
+<p>La classe trajMaker utilise des widgets ttk dès qu'ils existent:
+ttk.Frame, ttk.Entry, ttk.Button, ttk.Combobox, ttk.Scrollbar,
+ttk.Label, ttkCheckbutton (a travers jcCheckbutton))
+et tk.Toplevel, tk.Canvas.</p>
+<p>Il n'y a pas de redondance, c'est à dire que les paramètres sont
+stockés directement dans les widget. C'est pourquoi j'ai introduit un
+jcCheckButton, qui hérite de ttk.Checkbutton mais avec un membre de
+plus qui est la valeur du bouton.</p>
+<p>La structure du GUI comprend un tk.Toplevel qui contient 2 tk.Frame :
+FrameB pour les boutons et FrameM pour manipuler les sections.
+FrameM contient un tk.Canvas et un tk.Scrollbar. Le canvas contient
+une fenetre avec le frame qui contient toutes les zones à remplir
+arrangées suivant le layout grid. </p>
+<p>La section <em>arc2</em> sens&gt;0 clockwise sens&lt;=0 anti-clockwise</p>
+<p>Creation d'un nouveau type de troncon:
+    rajouter une nouvelle entree dans Dico et Types, la nouvelle entrée sera proposée 
+    dans "comboboxSelect()" rajouter le cas à traiter
+    dans "processTraj()" traiter effectivement le cas</p>
+</body>
+</html>
