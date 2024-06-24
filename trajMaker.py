@@ -574,6 +574,7 @@ class trajMaker:
                     return
                 R = Rd # since Rf is the same
                 ApR = (AfR+AdR)/2
+                if AfR < Adr:sens=-sens
                 if sens<0:ApR+=pi
                 # determine the passage point
                 xp = R*cos(ApR)+xc
