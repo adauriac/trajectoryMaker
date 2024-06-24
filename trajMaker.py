@@ -475,17 +475,20 @@ class trajMaker:
                     messagebox.showerror("fatal",msg)
                     return
                 n = int(localDico["nZigZag"])
+                if n==0:
+                    xd=x0
+                    yd=y0
+                    self.canvasImage.create_line(convFactor*xd+e,convFactor*yd+e,convFactor*xd+e,convFactor*yF+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xd+e,convFactor*yF+e,convFactor*xF+e,convFactor*yF+e, fill=color, width=w)
+                    xcur = xF
+                    ycur = yF
+                    continue
                 LX = xF-xcur
                 LY = yF-ycur
                 L = LY
                 l = LX/(2.0*n) if n!=0 else L
                 self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*xcur+e,convFactor*(ycur+L)+e, fill=color, width=w)
                 ycur += L
-                if n==0:
-                    self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
-                    xcur = xF
-                    ycur = yF
-                    continue
                 for i in range(n):
                     # (xcur,ycur)->(xcur+l,ycur)
                     self.canvasImage.create_line(convFactor*xcur+e,convFactor*ycur+e,convFactor*(xcur+l)+e,convFactor*ycur+e, fill=color, width=w)
@@ -509,6 +512,14 @@ class trajMaker:
                     messagebox.showerror("fatal",msg)
                     return
                 n = int(localDico["nZigZag"])
+                if n==0:
+                    xd=x0
+                    yd=y0
+                    self.canvasImage.create_line(convFactor*xd+e,convFactor*yd+e,convFactor*xF+e,convFactor*yd+e, fill=color, width=w)
+                    self.canvasImage.create_line(convFactor*xF+e,convFactor*yd+e,convFactor*xF+e,convFactor*yF+e, fill=color, width=w)
+                    xcur = xF
+                    ycur = yF
+                    continue
                 LX = xF-xcur
                 LY = yF-ycur
                 L = LX
