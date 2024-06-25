@@ -575,7 +575,7 @@ class trajMaker:
                 xc = float(localDico["xC"]) # x center
                 if self.arc2Fake:
                     yc=0.5*(-2*xc*xF + xF**2 + yF**2 + 2*xc*xd - xd**2 - yd**2)/(yF-yd)
-                    messagebox.showinfo("",f"ai force yc={yc} et je ne teste pas que la traj. reste dans le cadre")
+                    messagebox.showinfo("",f"yc={yc} forced")
                 else:
                     yc = float(localDico["yC"]) # y center
                 AdR,Rd = cartesianToPolar(xd,yd,xc,yc)
@@ -1142,6 +1142,7 @@ class trajMaker:
     def loadFile(self,name=""):
         """
         load the choosen file, update the GUI accordingly
+        the name of the file is accessible as self.dataLoadedFileName
         """
         c,r = self.frame.grid_size()
         # print(f"loadFile: entering  c,r={c,r}")
@@ -1164,6 +1165,7 @@ class trajMaker:
         if not ok:
             return
         # creat a warning window
+        self.fileLoadedName = dataFile.name
         topWarner = tk.Toplevel()
         topWarner.title("warning")
         w = self.frameM.winfo_width()
