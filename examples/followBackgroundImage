@@ -1,0 +1,9 @@
+type=line xF=247 yF=235 zF=0 speed=10 plasma=0 
+type=arc1 xF=219 yF=252 xP=378 yP=454 speed=10 plasma=1 
+type=line xF=459 yF=227 zF=0 speed=10 plasma=0 
+type=arc1 xF=490 yF=200 xP=473 yP=211 speed=10 plasma=1 
+type=line xF=450 yF=125 zF=0 speed=12 plasma=0 
+type=ezsqx xF=260 yF=26 nZigZag=7 speed=15 plasma=0 
+type=line xF=260 yF=22 zF=0 speed=15 plasma=0 
+type=ezsqy xF=700 yF=500 nZigZag=0 speed=15 plasma=0 
+type=circ1 xP1=600 yP1=370 xP2=640 yP2=380 speed=16 plasma=0 

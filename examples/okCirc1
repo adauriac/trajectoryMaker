@@ -1,0 +1,2 @@
+type=line xF=100 yF=100 zF=0 speed=10 plasma=0 
+type=circ1 xP1=150 yP1=200 xP2=300 yP2=150 speed=10 plasma=0 

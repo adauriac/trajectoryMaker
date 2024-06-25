@@ -1,0 +1,6 @@
+type=line xF=100 yF=100 zF=0 speed=5 plasma=0 
+type=arc1 xF=200 yF=100 xP=150 yP=180 speed=12 plasma=0 
+type=circ1 xP1=200 yP1=120 xP2=150 yP2=180 speed=12 plasma=0 
+type=circ2 xC=200 yC=100 sens=0 speed=12 plasma=0 
+type=ezsqx xF=300 yF=320 nZigZag=5 speed=23 plasma=0 
+type=ezsqy xF=400 yF=400 nZigZag=9 speed=23 plasma=0 

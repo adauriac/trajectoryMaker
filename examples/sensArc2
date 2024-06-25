@@ -1,0 +1,5 @@
+type=line xF=247 yF=235 zF=0 speed=10 plasma=0 
+type=arc1 xF=219 yF=252 xP=378 yP=454 speed=10 plasma=1 
+type=line xF=459 yF=227 zF=0 speed=10 plasma=0 
+type=arc2 xF=486 yF=197 xC=605 yC=310 sens=1 speed=10 plasma=1 
+type=line xF=0 yF=0 zF=0 speed=10 plasma=0 

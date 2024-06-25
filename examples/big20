@@ -1,0 +1,20 @@
+type=line xF=100 yF=100 zF=0 speed=5 plasma=0 
+type=arc1 xF=150 yF=100 xP=150 yP=80 speed=12 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=arc1 xF=150 yF=100 xP=150 yP=120 speed=1 plasma=1 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 
+type=line xF=100 yF=100 zF=0 speed=11 plasma=0 

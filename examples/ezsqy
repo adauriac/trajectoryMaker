@@ -1,0 +1,6 @@
+type=line xF=100 yF=100 zF=0 speed=0 plasma=0 
+type=ezsqy xF=200 yF=300 nZigZag=0 speed=1 plasma=1 
+type=line xF=250 yF=100 zF=0 speed=0 plasma=0 
+type=ezsqy xF=350 yF=300 nZigZag=1 speed=1 plasma=1 
+type=line xF=420 yF=100 zF=0 speed=1 plasma=0 
+type=ezsqy xF=520 yF=300 nZigZag=2 speed=1 plasma=1 
