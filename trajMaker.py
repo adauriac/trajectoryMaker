@@ -1358,6 +1358,8 @@ if __name__=='__main__':
         import os
         fichiers = os.listdir("examples")
         for f in fichiers:
+            if f.find(".py") != -1:
+                continue # pas un fichier a analyser 
             print(f)
             my.loadFile("examples/%s"%f)
             my.go()

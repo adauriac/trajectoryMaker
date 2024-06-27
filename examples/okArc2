@@ -1,9 +1,0 @@
-type=line xF=100 yF=120 zF=0 speed=5 plasma=0 
-type=arc2 xF=100 yF=280 xC=150 yC=0 sens=1 speed=10 plasma=1 
-type=line xF=100 yF=120 zF=0 speed=11 plasma=0 
-type=arc2 xF=100 yF=280 xC=150 yC=0 sens=-1 speed=11 plasma=0 
-type=line xF=300 yF=0 zF=0 speed=11 plasma=0 
-type=line xF=300 yF=120 zF=0 speed=11 plasma=0 
-type=arc2 xF=380 yF=110 xC=350 yC=0 sens=1 speed=11 plasma=1 
-type=line xF=300 yF=120 zF=0 speed=11 plasma=0 
-type=arc2 xF=380 yF=110 xC=350 yC=0 sens=-1 speed=11 plasma=0 
